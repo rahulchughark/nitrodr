@@ -138,6 +138,15 @@ if (!empty($requestData['end_customer'])) {
     }
 }
 
+// Custom filter for type
+if (!empty($requestData['type'])) {
+    $typeArr = json_decode($requestData['type'], true);
+    if (!empty($typeArr)) {
+        $escapedType = array_map(function($id) { return "'" . db_escape($id) . "'"; }, (array)$typeArr);
+        $sql .= " AND fd.type IN (" . implode(',', $escapedType) . ")";
+    }
+}
+
 $queryCount = db_query($sql);
 $totalFiltered = mysqli_num_rows($queryCount);
 

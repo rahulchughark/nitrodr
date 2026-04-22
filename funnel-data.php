@@ -137,7 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel']) && $_FILES[
                                                     ?>
                                                     <div class="row">
                                                         <div class="form-group col-md-6 col-xl-4">
-                                                            <label class="font-size-12">Lead Source</label>
+                                                            <label class="font-size-12">Source</label>
                                                             <select name="lead_source_id[]" class="form-control" id="multiselect_lead_source" multiple>
                                                                 <?php 
                                                                 $lsRes = db_query("SELECT DISTINCT fd.source, COALESCE(ls.lead_source, fd.source) as display_name FROM funnel_data fd LEFT JOIN lead_source ls ON fd.source = ls.id WHERE fd.source IS NOT NULL AND fd.source != '' $partnerWhere ORDER BY display_name ASC");
@@ -166,6 +166,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel']) && $_FILES[
                                                                 <input type="text" class="form-control" id="closure_from" name="closure_from" placeholder="From" autocomplete="off" />
                                                                 <input type="text" class="form-control" id="closure_to" name="closure_to" placeholder="To" autocomplete="off" />
                                                             </div>
+                                                        </div>
+                                                        <div class="form-group col-md-6 col-xl-4">
+                                                            <label class="font-size-12">Type</label>
+                                                            <select name="type[]" class="form-control" id="multiselect_type" multiple>
+                                                                <?php 
+                                                                $typeRes = db_query("SELECT DISTINCT type FROM funnel_data fd WHERE type IS NOT NULL AND type != '' $partnerWhere ORDER BY type ASC");
+                                                                while ($typeRow = db_fetch_array($typeRes)) { ?>
+                                                                    <option value="<?= $typeRow['type'] ?>"><?= $typeRow['type'] ?></option>
+                                                                <?php } ?>
+                                                            </select>
                                                         </div>
                                                         <div class="form-group col-md-6 col-xl-4">
                                                             <label class="font-size-12">Stage</label>
@@ -280,6 +290,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel']) && $_FILES[
                             d.stage = JSON.stringify($('#multiselect_stage').val());
                             d.brand = JSON.stringify($('#multiselect_brand').val());
                             d.end_customer = JSON.stringify($('#multiselect_end_customer').val());
+                            d.type = JSON.stringify($('#multiselect_type').val());
                         },
                         error: function() {
                             $(".employee-grid-error").html("");
@@ -357,6 +368,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel']) && $_FILES[
                     includeFilterClearBtn: true
                 });
 
+                $('#multiselect_type').multiselect({
+                    buttonWidth: '100%',
+                    includeSelectAllOption: true,
+                    nonSelectedText: 'Filter Type',
+                    enableFiltering: true,
+                    enableCaseInsensitiveFiltering: true,
+                    includeFilterClearBtn: true
+                });
+
                 // Handle Filter Form Submit
                 $('#search-form').on('submit', function(e) {
                     e.preventDefault();
@@ -370,7 +390,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel']) && $_FILES[
                 <?php if (!$isPartner) { ?>
                 $('#multiselect_reseller').val([]).multiselect('refresh');
                 <?php } ?>
-                $('#multiselect_stage, #multiselect_brand, #multiselect_end_customer').val([]).multiselect('refresh');
+                $('#multiselect_stage, #multiselect_brand, #multiselect_end_customer, #multiselect_type').val([]).multiselect('refresh');
                 $('#closure_from, #closure_to').val('');
                 $('#funnel_table').DataTable().ajax.reload();
                 $('#filter-container').hide();

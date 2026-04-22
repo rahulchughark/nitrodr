@@ -154,6 +154,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel']) && $_FILES[
                                                             </select>
                                                         </div>
                                                         <?php } ?>
+                                                        <div class="form-group col-md-6 col-xl-4">
+                                                            <label class="font-size-12">Closure Date</label>
+                                                            <div class="input-daterange input-group" id="datepicker-closure-date">
+                                                                <input type="text" class="form-control" id="closure_from" name="closure_from" placeholder="From" autocomplete="off" />
+                                                                <input type="text" class="form-control" id="closure_to" name="closure_to" placeholder="To" autocomplete="off" />
+                                                            </div>
+                                                        </div>
                                                         <div class="col-md-3 col-xl-2 pt-4">
                                                             <button type="submit" class="btn btn-primary font-14"><span class="mdi mdi-magnify" aria-hidden="true"></span></button>
                                                             <button type="button" class="btn btn-danger" onclick="clear_search()"><span class="mdi mdi-close" aria-hidden="true"></span></button>
@@ -232,6 +239,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel']) && $_FILES[
                             <?php if (!$isPartner) { ?>
                             d.reseller_id = JSON.stringify($('#multiselect_reseller').val());
                             <?php } ?>
+                            d.closure_from = $('#closure_from').val();
+                            d.closure_to = $('#closure_to').val();
                         },
                         error: function() {
                             $(".employee-grid-error").html("");
@@ -295,7 +304,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel']) && $_FILES[
                 <?php if (!$isPartner) { ?>
                 $('#multiselect_reseller').val([]).multiselect('refresh');
                 <?php } ?>
+                $('#closure_from, #closure_to').val('');
                 $('#funnel_table').DataTable().ajax.reload();
                 $('#filter-container').hide();
             }
+
+            $(function() {
+                $('#datepicker-closure-date').datepicker({
+                    format: 'yyyy-mm-dd',
+                    autoclose: true
+                });
+            });
         </script>

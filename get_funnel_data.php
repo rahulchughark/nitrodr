@@ -101,6 +101,16 @@ if (!$isPartner && !empty($requestData['reseller_id'])) {
     }
 }
 
+// Custom filter for closure date range
+if (!empty($requestData['closure_from'])) {
+    $closure_from = db_escape($requestData['closure_from']);
+    $sql .= " AND fd.closure_date >= '$closure_from'";
+}
+if (!empty($requestData['closure_to'])) {
+    $closure_to = db_escape($requestData['closure_to']);
+    $sql .= " AND fd.closure_date <= '$closure_to'";
+}
+
 $queryCount = db_query($sql);
 $totalFiltered = mysqli_num_rows($queryCount);
 

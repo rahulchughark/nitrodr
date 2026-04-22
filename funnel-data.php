@@ -129,12 +129,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel']) && $_FILES[
                                         <div class="dropdown dropdown-lg">
                                             <div class="dropdown-menu1 dropdown-menu-right filter_wrap_2 shadow-lg" id="filter-container" role="menu" style="display: none;">
                                                 <form method="get" id="search-form" name="search">
+                                                    <?php 
+                                                    $partnerWhere = "";
+                                                    if ($isPartner && isset($_SESSION['team_id'])) {
+                                                        $partnerWhere = " AND fd.reseller_code = '" . db_escape($_SESSION['team_id']) . "'";
+                                                    }
+                                                    ?>
                                                     <div class="row">
                                                         <div class="form-group col-md-6 col-xl-4">
                                                             <label class="font-size-12">Lead Source</label>
                                                             <select name="lead_source_id[]" class="form-control" id="multiselect_lead_source" multiple>
                                                                 <?php 
-                                                                $lsRes = db_query("SELECT DISTINCT fd.source, COALESCE(ls.lead_source, fd.source) as display_name FROM funnel_data fd LEFT JOIN lead_source ls ON fd.source = ls.id WHERE fd.source IS NOT NULL AND fd.source != '' ORDER BY display_name ASC");
+                                                                $lsRes = db_query("SELECT DISTINCT fd.source, COALESCE(ls.lead_source, fd.source) as display_name FROM funnel_data fd LEFT JOIN lead_source ls ON fd.source = ls.id WHERE fd.source IS NOT NULL AND fd.source != '' $partnerWhere ORDER BY display_name ASC");
                                                                 while ($lsRow = db_fetch_array($lsRes)) { ?>
                                                                     <option value="<?= $lsRow['source'] ?>"><?= $lsRow['display_name'] ?></option>
                                                                 <?php } ?>
@@ -160,6 +166,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel']) && $_FILES[
                                                                 <input type="text" class="form-control" id="closure_from" name="closure_from" placeholder="From" autocomplete="off" />
                                                                 <input type="text" class="form-control" id="closure_to" name="closure_to" placeholder="To" autocomplete="off" />
                                                             </div>
+                                                        </div>
+                                                        <div class="form-group col-md-6 col-xl-4">
+                                                            <label class="font-size-12">Stage</label>
+                                                            <select name="stage[]" class="form-control" id="multiselect_stage" multiple>
+                                                                <?php 
+                                                                $stageRes = db_query("SELECT DISTINCT quote FROM funnel_data fd WHERE quote IS NOT NULL AND quote != '' $partnerWhere ORDER BY quote ASC");
+                                                                while ($stageRow = db_fetch_array($stageRes)) { ?>
+                                                                    <option value="<?= $stageRow['quote'] ?>"><?= $stageRow['quote'] ?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </div>
+                                                        <div class="form-group col-md-6 col-xl-4">
+                                                            <label class="font-size-12">Brand</label>
+                                                            <select name="brand[]" class="form-control" id="multiselect_brand" multiple>
+                                                                <?php 
+                                                                $brandRes = db_query("SELECT DISTINCT brand FROM funnel_data fd WHERE brand IS NOT NULL AND brand != '' $partnerWhere ORDER BY brand ASC");
+                                                                while ($brandRow = db_fetch_array($brandRes)) { ?>
+                                                                    <option value="<?= $brandRow['brand'] ?>"><?= $brandRow['brand'] ?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </div>
+                                                        <div class="form-group col-md-6 col-xl-4">
+                                                            <label class="font-size-12">End Customer</label>
+                                                            <select name="end_customer[]" class="form-control" id="multiselect_end_customer" multiple>
+                                                                <?php 
+                                                                $ecRes = db_query("SELECT DISTINCT end_customer FROM funnel_data fd WHERE end_customer IS NOT NULL AND end_customer != '' $partnerWhere ORDER BY end_customer ASC");
+                                                                while ($ecRow = db_fetch_array($ecRes)) { ?>
+                                                                    <option value="<?= $ecRow['end_customer'] ?>"><?= $ecRow['end_customer'] ?></option>
+                                                                <?php } ?>
+                                                            </select>
                                                         </div>
                                                         <div class="col-md-3 col-xl-2 pt-4">
                                                             <button type="submit" class="btn btn-primary font-14"><span class="mdi mdi-magnify" aria-hidden="true"></span></button>
@@ -241,6 +277,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel']) && $_FILES[
                             <?php } ?>
                             d.closure_from = $('#closure_from').val();
                             d.closure_to = $('#closure_to').val();
+                            d.stage = JSON.stringify($('#multiselect_stage').val());
+                            d.brand = JSON.stringify($('#multiselect_brand').val());
+                            d.end_customer = JSON.stringify($('#multiselect_end_customer').val());
                         },
                         error: function() {
                             $(".employee-grid-error").html("");
@@ -291,6 +330,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel']) && $_FILES[
                 });
                 <?php } ?>
 
+                $('#multiselect_stage').multiselect({
+                    buttonWidth: '100%',
+                    includeSelectAllOption: true,
+                    nonSelectedText: 'Filter Stage',
+                    enableFiltering: true,
+                    enableCaseInsensitiveFiltering: true,
+                    includeFilterClearBtn: true
+                });
+
+                $('#multiselect_brand').multiselect({
+                    buttonWidth: '100%',
+                    includeSelectAllOption: true,
+                    nonSelectedText: 'Filter Brand',
+                    enableFiltering: true,
+                    enableCaseInsensitiveFiltering: true,
+                    includeFilterClearBtn: true
+                });
+
+                $('#multiselect_end_customer').multiselect({
+                    buttonWidth: '100%',
+                    includeSelectAllOption: true,
+                    nonSelectedText: 'Filter End Customer',
+                    enableFiltering: true,
+                    enableCaseInsensitiveFiltering: true,
+                    includeFilterClearBtn: true
+                });
+
                 // Handle Filter Form Submit
                 $('#search-form').on('submit', function(e) {
                     e.preventDefault();
@@ -304,6 +370,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel']) && $_FILES[
                 <?php if (!$isPartner) { ?>
                 $('#multiselect_reseller').val([]).multiselect('refresh');
                 <?php } ?>
+                $('#multiselect_stage, #multiselect_brand, #multiselect_end_customer').val([]).multiselect('refresh');
                 $('#closure_from, #closure_to').val('');
                 $('#funnel_table').DataTable().ajax.reload();
                 $('#filter-container').hide();

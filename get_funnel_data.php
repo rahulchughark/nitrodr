@@ -111,6 +111,33 @@ if (!empty($requestData['closure_to'])) {
     $sql .= " AND fd.closure_date <= '$closure_to'";
 }
 
+// Custom filter for stage
+if (!empty($requestData['stage'])) {
+    $stage = json_decode($requestData['stage'], true);
+    if (!empty($stage)) {
+        $escapedStage = array_map(function($id) { return "'" . db_escape($id) . "'"; }, (array)$stage);
+        $sql .= " AND fd.quote IN (" . implode(',', $escapedStage) . ")";
+    }
+}
+
+// Custom filter for brand
+if (!empty($requestData['brand'])) {
+    $brand = json_decode($requestData['brand'], true);
+    if (!empty($brand)) {
+        $escapedBrand = array_map(function($id) { return "'" . db_escape($id) . "'"; }, (array)$brand);
+        $sql .= " AND fd.brand IN (" . implode(',', $escapedBrand) . ")";
+    }
+}
+
+// Custom filter for end_customer
+if (!empty($requestData['end_customer'])) {
+    $end_customer = json_decode($requestData['end_customer'], true);
+    if (!empty($end_customer)) {
+        $escapedEc = array_map(function($id) { return "'" . db_escape($id) . "'"; }, (array)$end_customer);
+        $sql .= " AND fd.end_customer IN (" . implode(',', $escapedEc) . ")";
+    }
+}
+
 $queryCount = db_query($sql);
 $totalFiltered = mysqli_num_rows($queryCount);
 

@@ -87,8 +87,17 @@ if (!empty($requestData['search']['value'])) {
 if (!empty($requestData['lead_source_id'])) {
     $lsIds = json_decode($requestData['lead_source_id'], true);
     if (!empty($lsIds)) {
-        $lsIds = array_map('intval', (array)$lsIds);
-        $sql .= " AND fd.source IN (" . implode(',', $lsIds) . ")";
+        $escapedLsIds = array_map(function($id) { return "'" . db_escape($id) . "'"; }, (array)$lsIds);
+        $sql .= " AND fd.source IN (" . implode(',', $escapedLsIds) . ")";
+    }
+}
+
+// Custom filter for reseller_id
+if (!$isPartner && !empty($requestData['reseller_id'])) {
+    $resellerIds = json_decode($requestData['reseller_id'], true);
+    if (!empty($resellerIds)) {
+        $escapedIds = array_map(function($id) { return "'" . db_escape($id) . "'"; }, (array)$resellerIds);
+        $sql .= " AND (fd.reseller_code IN (" . implode(',', $escapedIds) . ") OR fd.reseller IN (" . implode(',', $escapedIds) . "))";
     }
 }
 

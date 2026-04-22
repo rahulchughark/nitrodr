@@ -134,12 +134,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel']) && $_FILES[
                                                             <label class="font-size-12">Lead Source</label>
                                                             <select name="lead_source_id[]" class="form-control" id="multiselect_lead_source" multiple>
                                                                 <?php 
-                                                                $lsRes = db_query("SELECT id, lead_source FROM lead_source WHERE status=1 ORDER BY lead_source ASC");
+                                                                $lsRes = db_query("SELECT DISTINCT fd.source, COALESCE(ls.lead_source, fd.source) as display_name FROM funnel_data fd LEFT JOIN lead_source ls ON fd.source = ls.id WHERE fd.source IS NOT NULL AND fd.source != '' ORDER BY display_name ASC");
                                                                 while ($lsRow = db_fetch_array($lsRes)) { ?>
-                                                                    <option value="<?= $lsRow['id'] ?>"><?= $lsRow['lead_source'] ?></option>
+                                                                    <option value="<?= $lsRow['source'] ?>"><?= $lsRow['display_name'] ?></option>
                                                                 <?php } ?>
                                                             </select>
                                                         </div>
+                                                        <?php if (!$isPartner) { ?>
+                                                        <div class="form-group col-md-6 col-xl-4">
+                                                            <label class="font-size-12">Reseller</label>
+                                                            <select name="reseller_id[]" class="form-control" id="multiselect_reseller" multiple>
+                                                                <?php 
+                                                                $resellerRes = db_query("SELECT DISTINCT fd.reseller_code, fd.reseller, COALESCE(p.name, fd.reseller) as display_name FROM funnel_data fd LEFT JOIN partners p ON fd.reseller_code = p.id WHERE (fd.reseller_code IS NOT NULL AND fd.reseller_code != '') OR (fd.reseller IS NOT NULL AND fd.reseller != '') ORDER BY display_name ASC");
+                                                                while ($resellerRow = db_fetch_array($resellerRes)) { 
+                                                                    $val = !empty($resellerRow['reseller_code']) ? $resellerRow['reseller_code'] : $resellerRow['reseller'];
+                                                                ?>
+                                                                    <option value="<?= $val ?>"><?= $resellerRow['display_name'] ?></option>
+                                                                <?php } ?>
+                                                            </select>
+                                                        </div>
+                                                        <?php } ?>
                                                         <div class="col-md-3 col-xl-2 pt-4">
                                                             <button type="submit" class="btn btn-primary font-14"><span class="mdi mdi-magnify" aria-hidden="true"></span></button>
                                                             <button type="button" class="btn btn-danger" onclick="clear_search()"><span class="mdi mdi-close" aria-hidden="true"></span></button>
@@ -215,6 +229,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel']) && $_FILES[
                         type: "post",
                         data: function(d) {
                             d.lead_source_id = JSON.stringify($('#multiselect_lead_source').val());
+                            <?php if (!$isPartner) { ?>
+                            d.reseller_id = JSON.stringify($('#multiselect_reseller').val());
+                            <?php } ?>
                         },
                         error: function() {
                             $(".employee-grid-error").html("");
@@ -254,6 +271,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel']) && $_FILES[
                     includeFilterClearBtn: true
                 });
 
+                <?php if (!$isPartner) { ?>
+                $('#multiselect_reseller').multiselect({
+                    buttonWidth: '100%',
+                    includeSelectAllOption: true,
+                    nonSelectedText: 'Filter Reseller',
+                    enableFiltering: true,
+                    enableCaseInsensitiveFiltering: true,
+                    includeFilterClearBtn: true
+                });
+                <?php } ?>
+
                 // Handle Filter Form Submit
                 $('#search-form').on('submit', function(e) {
                     e.preventDefault();
@@ -264,6 +292,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel']) && $_FILES[
 
             function clear_search() {
                 $('#multiselect_lead_source').val([]).multiselect('refresh');
+                <?php if (!$isPartner) { ?>
+                $('#multiselect_reseller').val([]).multiselect('refresh');
+                <?php } ?>
                 $('#funnel_table').DataTable().ajax.reload();
                 $('#filter-container').hide();
             }

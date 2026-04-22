@@ -1,0 +1,325 @@
+$env:Path += ";C:\Program Files\Git\bin;C:\Program Files\Git\cmd"
+
+06-12-2024 : ALTER TABLE `orders` ADD `allign_team_id` INT NULL AFTER `allign_to`;   Done - stage,live
+
+16-12-2024 : ALTER TABLE `stages` ADD `forecasting_flag` INT NOT NULL DEFAULT '1' AFTER `probability`;   Done - live 
+
+17-12-2024 : ALTER TABLE `tbl_lead_product_opportunity` ADD `main_product_id` INT NULL AFTER `lead_id`;
+
+17-12-2024 : UPDATE tbl_lead_product_opportunity AS lead JOIN tbl_product_opportunity AS p ON lead.product = p.id SET lead.main_product_id = p.main_product_id WHERE lead.main_product_id IS NULL;
+
+03-01-2025 : INSERT INTO `user_type_role` (`id`, `role_code`, `role_type`, `status`, `created_at`) VALUES (NULL, 'DA', 'Demo Artist', '1', NULL);   - Done 
+03-01-2025 : INSERT INTO `role` (`id`, `role_code`, `role_name`, `created_date`) VALUES (NULL, 'DA', 'Demo Artist', CURRENT_TIMESTAMP);   - Done 
+
+06-02-2025 : ALTER TABLE `tbl_lead_product_opportunity` ADD `financial_year_start` INT NULL AFTER `original_sales_price`, ADD `financial_year_end` INT NULL AFTER `financial_year_start`;
+
+-- Fil financial start and end for old 
+UPDATE tbl_lead_product_opportunity t JOIN orders o ON t.lead_id = o.id SET t.financial_year_start = CASE WHEN MONTH(o.program_start_date) >= 4 THEN YEAR(o.program_start_date) ELSE YEAR(o.program_start_date) - 1 END, t.financial_year_end = CASE WHEN MONTH(o.program_start_date) >= 4 THEN YEAR(o.program_start_date) + 1 ELSE YEAR(o.program_start_date) END WHERE o.agreement_type='Renewal' and o.is_opportunity=1 and (t.financial_year_start IS NULL OR t.financial_year_end IS NULL)
+
+-- fill record in this tbl_renewal_lead_task_process_record 
+INSERT INTO tbl_renewal_lead_task_process_record (
+    lead_id,
+    program_initiation_date,
+    program_start_date,
+    renewal_date,
+    financial_year_start,
+    financial_year_end
+)
+SELECT 
+    o.id AS lead_id,
+    o.program_initiation_date,
+    o.program_start_date,
+    MAX(t.created_at) AS renewal_date,
+    CASE 
+        WHEN MONTH(MAX(t.created_at)) >= 4 THEN YEAR(MAX(t.created_at))
+        ELSE YEAR(MAX(t.created_at)) - 1
+    END AS financial_year_start,
+    CASE 
+        WHEN MONTH(MAX(t.created_at)) >= 4 THEN YEAR(MAX(t.created_at)) + 1
+        ELSE YEAR(MAX(t.created_at))
+    END AS financial_year_end
+FROM 
+    orders o
+JOIN 
+    tbl_lead_product_opportunity t ON o.id = t.lead_id
+LEFT JOIN 
+    tbl_renewal_lead_task_process_record r ON r.lead_id = o.id
+WHERE 
+    o.agreement_type = 'Renewal'
+    AND t.status = 1
+    AND r.lead_id IS NULL
+    AND DATE(t.created_at) <= '2025-05-15'
+GROUP BY 
+    o.id, o.program_initiation_date, o.program_start_date;
+
+
+07-02-2025 : ALTER TABLE `orders` ADD `renew_opportunity_date` VARCHAR(191) NULL AFTER `is_renewal`;
+
+20-02-2025 : ALTER TABLE `orders` ADD `onboard_mail_sent` INT NOT NULL DEFAULT '0' AFTER `renew_opportunity_date`;
+
+31-03-2025 : ALTER TABLE `orders` ADD `product_remarks` TEXT NULL AFTER `onboard_mail_sent`;
+
+21-04-2025 : ALTER TABLE `tbl_lead_product_opportunity` ADD `renewal_tasks_process_id` INT NOT NULL DEFAULT '0' AFTER `original_sales_price`;
+ALTER TABLE `generated_task` ADD `renewal_tasks_process_id` INT NOT NULL DEFAULT '0' AFTER `lead_id`;
+Table Created : tbl_renewal_lead_task_process_record
+
+08-02-2025
+ALTER TABLE `learning_zone` CHANGE `users_access` `users_access` VARCHAR(251) CHARACTER SET latin1 COLLATE latin1_swedish_ci NULL DEFAULT NULL;
+
+
+04-06-2025
+ALTER TABLE `learning_zone` ADD `document_category` VARCHAR(191) NULL AFTER `title`;
+ALTER TABLE `learning_zone` ADD `partner_access` VARCHAR(191) NULL AFTER `users_access`;
+
+12-06-2025
+UPDATE `task_questions` SET `dont_show` = '1' WHERE `task_questions`.`id` = 12;
+UPDATE `task_questions` SET `dont_show` = '1' WHERE `task_questions`.`id` = 17;
+UPDATE `task_questions` SET `dont_show` = '1' WHERE `task_questions`.`id` = 22;
+UPDATE `task_questions` SET `dont_show` = '1' WHERE `task_questions`.`id` = 27;
+UPDATE `task_questions` SET `dont_show` = '1' WHERE `task_questions`.`id` = 36;
+
+11-07-2025 - partner , team, date-wise sorting forecasting
+get_stage_wise_forecasting.php
+get_stage_wise_forecasting_renewal.php
+stage_wise_forecasting.php
+stage_wise_forecasting_renewal.php
+
+14-7-2025 -- quality
+change_stage.php
+orders.php
+ALTER TABLE `tbl_lead_product_opportunity` ADD `upsell` VARCHAR(10) NOT NULL DEFAULT '0' AFTER `financial_year_end`;
+upsell : 
+Pradeeps_sql_updates
+edit_opportunity.php
+renew_opportunity.php
+update_opportunity.php
+
+15-7-2025  -------   quality and upsell , upsell forcast
+        modified:   add_order.php
+        modified:   edit_opportunity.php
+        modified:   get_renewal_leads_admin.php
+        modified:   get_stage_wise_forecasting_renewal.php
+        modified:   renew_opportunity.php
+        modified:   renewal_leads_admin.php
+        modified:   stage_change.php
+        modified:   stage_wise_forecasting_renewal.php
+
+30-07-2025
+    modified:   clm/app/Http/Controllers/Generatetaskcroon/GenerateCroonTaskController.php
+
+31-07-2025 -------------- onboarding button condition
+        modified:   view_opportunity.php
+        modified:   view_renewal_opportunity.php
+        ----generte activity school segregation
+        modified:   clm/app/Http/Controllers/ClmController.php
+        modified:   clm/resources/views/reports/activity-tracker.blade.php
+
+01-08-2025 -- edit user caller entry -- done on live
+  modified:   edit_user.php
+  ---- learning zone add condition 
+  add_product_document.php
+
+06-08-2025 ----  mass lead allignment
+        modified:   get_mass_leads.php
+        modified:   mass_leads_alignment.php
+        modified:   massLeads_ajax.php
+        modified:   view_opportunity.php
+
+12-08-2025
+        modified:   add_opportunity_attachments.php
+        modified:   view_opportunity.php
+        modified:   view_order.php
+        modified:   view_renewal_opportunity.php
+
+22-08-20225 - removal of school from generate activity and trainer update on edit lead
+        modified:   clm/app/Http/Controllers/ClmController.php
+        modified:   clm/resources/views/reports/activity-tracker.blade.php
+
+25-08-2025 - limited access
+        modified:   get_billed_opportunity.php
+        modified:   get_closed_opportunity.php
+        modified:   get_opportunity.php
+        modified:   get_orders.php
+        modified:   get_renewal_leads_admin.php
+        modified:   view_opportunity.php
+        modified:   view_order.php
+        modified:   view_renewal_opportunity.php
+
+05-09-2025 role users_access
+    ALTER TABLE `tbl_role_permission` ADD `edit_product` INT NOT NULL DEFAULT '0' AFTER `edit_review_log`;
+        modified:   Pradeeps_sql_updates
+        modified:   change_role_permission.php
+        modified:   includes/helpers.php
+        modified:   manage_role_access.php
+        modified:   view_opportunity.php
+        modified:   view_renewal_opportunity.php
+
+15-09-2025   forecasting filters 
+        modified:   get_opportunity.php
+        modified:   get_stage_wise_forecasting.php
+        modified:   stage_wise_forecasting.php
+        modified:   stage_wise_forecasting_renewal.php
+
+08-10-02025 --   TT 07-10-2025 3 points 
+        modified:   app/Http/Controllers/ClmController.php
+        modified:   app/Http/Controllers/Schools/TaskAssignSchools.php
+29-09-2025    8.2
+        modified:   includes/config.php
+        modified:   includes/helpers.php
+        modified:   logcalls.php
+        modified:   manage_billed_opportunity.php
+        modified:   manage_closed_opportunity.php
+        modified:   manage_opportunity.php
+        modified:   mass_leads_alignment.php
+        modified:   orders.php
+        modified:   product_doc_partner.php
+        modified:   product_document.php
+        modified:   renewal_leads_admin.php
+        modified:   renewal_leads_partner.php
+        modified:   search_orders.php
+        modified:   search_partner_lead.php
+        modified:   stage_wise_forecasting.php
+        modified:   stage_wise_forecasting_renewal.php
+
+09-10-2025 - partner filter 
+        modified:   get_billed_opportunity.php
+        modified:   get_closed_opportunity.php
+        modified:   get_opportunity.php
+        modified:   get_renewal_leads_admin.php
+        modified:   get_stage_wise_forecasting.php
+        modified:   get_stage_wise_forecasting_renewal.php
+        modified:   includes/helpers.php
+        modified:   manage_billed_opportunity.php
+        modified:   manage_closed_opportunity.php
+        modified:   manage_opportunity.php
+        modified:   renewal_leads_admin.php
+        modified:   stage_wise_forecasting.php
+        modified:   stage_wise_forecasting_renewal.php
+
+10-10-2025 -- 
+        modified:   get_stage_wise_forecasting.php
+        modified:   get_stage_wise_forecasting_renewal.php
+
+24-10-2024 - quality
+        modified:   Pradeeps_sql_updates
+        modified:   filtered_leads_list.php
+        modified:   includes/config.php
+        modified:   lead_status_stage_report.php
+        modified:   manage_opportunity.php
+        modified:   renewal_leads_admin.php
+
+              modified:   Pradeeps_sql_updates
+        new file:   ajax_global_search_suggestions.php
+        modified:   includes/header.php
+
+29-10-2025 - po pi attachments and php mailer 
+        modified:   class.phpmailer.php
+        modified:   class.smtp.php
+        deleted:    learning_centre/docs/sample.pdf
+
+        modified:   edit_opportunity_attachments.php
+        modified:   opportunity_attachments.php
+        modified:   view_opportunity.php
+        modified:   view_renewal_opportunity.php
+
+06-11-2025
+INsert lead modify log of stage which left while converting lead to opportunity 
+INSERT INTO lead_modify_log (
+    lead_id,
+    type,
+    previous_name,
+    modify_name,
+    created_date,
+    created_by,
+    log_status
+)
+SELECT 
+    o.id AS lead_id,
+    'Stage' AS type,
+    'Opportunity Convertion' AS previous_name,
+    'Quote' AS modify_name,
+    lm.created_date,
+    lm.created_by,
+    'Active' AS log_status
+FROM orders o
+JOIN lead_modify_log lm 
+    ON lm.lead_id = o.id
+   AND lm.previous_name = 'Lead'
+   AND lm.modify_name = 'Opportunity'
+WHERE o.stage = 'Quote'
+AND NOT EXISTS (
+    SELECT 1 
+    FROM lead_modify_log l2
+    WHERE l2.lead_id = o.id
+      AND l2.type = 'Stage'
+      AND l2.modify_name = 'Quote'
+);
+
+        modified:   Pradeeps_sql_updates
+        modified:   get_opportunity.php
+        modified:   get_renewal_leads_admin.php
+        modified:   get_stage_wise_forecasting.php
+        new file:   get_stage_wise_forecasting_bkp_as_lead_to_opportunity.php
+        modified:   get_stage_wise_forecasting_renewal.php
+        modified:   manage_opportunity.php
+        modified:   massLeads_ajax.php
+        modified:   renewal_leads_admin.php
+        modified:   save_opportunity.php
+        modified:   stage_change.php
+        modified:   stage_wise_forecasting.php
+        modified:   stage_wise_forecasting_renewal.php
+
+        12-11-2025
+        ALTER TABLE `personal_access_tokens` ADD `expires_at` VARCHAR(251) NULL AFTER `updated_at`;
+
+
+        19-12-2025
+        modified:   Pradeeps_sql_updates
+        modified:   add_activity.php
+        modified:   add_order.php
+        modified:   cd_change.php
+        modified:   demo_sub_stage_date.php
+        modified:   edit_opportunity_attachments.php
+        modified:   includes/functions.php
+        modified:   lead_status_stage_report.php
+        modified:   manage_opportunity.php
+        modified:   search_orders.php
+        modified:   stage_wise_forecasting_renewal.php
+        modified:   view_opportunity.php
+        modified:   view_order.php
+        modified:   view_renewal_opportunity.php
+
+        22-12-2025
+        modified:   includes/config.php
+        modified:   search_orders.php
+        modified:   stage_wise_forecasting.php
+        modified:   view_opportunity.php
+        modified:   view_order.php
+        modified:   view_renewal_opportunity.php
+
+        26-12-2025
+        modified:   add_order.php
+
+        edit close date 
+        modified:   view_opportunity.php
+
+
+    20-01-2026 - quality ---- 
+        modified:   add_order.php
+        modified:   manage_opportunity.php
+        modified:   mobileapi/app/Http/Controllers/AuthController.php
+        modified:   renewal_leads_admin.php
+        modified:   search_orders.php
+        modified:   view_order.php
+
+    CREATE TABLE mst_confidentials (id INT UNSIGNED NOT NULL AUTO_INCREMENT,db_name VARCHAR(255) NOT NULL DEFAULT '',db_user VARCHAR(255) NOT NULL DEFAULT '',db_pass VARCHAR(255) NOT NULL DEFAULT '',mysql_aes_key VARCHAR(255) NOT NULL DEFAULT '',email_username VARCHAR(255) NOT NULL DEFAULT '',email_password VARCHAR(255) NOT NULL DEFAULT '',PRIMARY KEY (id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4; 
+    INSERT INTO `mst_confidentials` (`id`, `db_name`, `db_user`, `db_pass`, `mysql_aes_key`, `email_username`,`email_password`) VALUES (NULL, '', '', '','', 'drsupport@ict360.com','TechDR#3210');
+
+functions.php
+
+21-01-2026      renewal products visibility issue
+        modified:   renew_opportunity.php
+        modified:   view_renewal_opportunity.php
+
+22-01-2026 - quality
+edit_order.php

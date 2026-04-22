@@ -1,0 +1,10 @@
+uploads/
+includes/include.php
+db/
+includes/config.php
+vendor/
+Xvendor/
+images/
+sendgrid-php/
+*.bak
+*==.php

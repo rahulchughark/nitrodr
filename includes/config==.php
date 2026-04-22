@@ -1,0 +1,27 @@
+<?php
+	if(!defined('LOCAL_MODE')) {
+		die('<span style="font-family: tahoma, arial; font-size: 11px">Config file cannot be included directly');
+	}
+	define('SITE_SUB_PATH', '/mbl/');
+	$ARR_CFGS["db_host"] = 'localhost';
+	$ARR_CFGS["db_name"] = 'ict_dr'; 
+	$ARR_CFGS["db_user"] = 'root';
+	$ARR_CFGS["db_pass"] = '';
+	
+	define('tb_Prefix', '');
+	define('SITE_PATH', 'http://'.$HTTP_HOST.SITE_SUB_PATH); 
+	define('MY_PATH', 'http://'.$HTTP_HOST.SITE_SUB_PATH); 
+	define('SITE_WS_PATH', 'http://'.$HTTP_HOST.SITE_SUB_PATH);
+
+	define('SITE_NAME', 'Corel');
+	define('SITE_TITLE', 'Corel');
+	define('TEST_MODE', false);
+	$title_message="Welcome To Corel";
+	$siteTitle="Welcome To Corel";
+	define('DEF_PAGE_SIZE', 20);
+	define('FRO_PAGE_SIZE', 10);
+	define('PAGE_NAME', basename($_SERVER['PHP_SELF'], '.php'));
+	$adminToolBar = array();
+	$Site_live=0;
+	date_default_timezone_set ("Asia/Calcutta");
+?>

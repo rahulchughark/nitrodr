@@ -1,0 +1,14 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+
+class ClmController extends Controller
+{
+    public function clmLeadView($id)
+    {
+        $data['id'] = $id;
+        return view('lead_view',$data);
+    }
+}

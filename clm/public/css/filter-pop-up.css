@@ -1,0 +1,57 @@
+
+.multiselect {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    width: 380px;
+    display: block;
+    padding: .375rem .75rem;
+    font-size: 1rem;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--bs-body-color);
+    background-color: var(--bs-body-bg);
+    background-clip: padding-box;
+    border: var(--bs-border-width) solid var(--bs-border-color);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    border-radius: var(--bs-border-radius);
+    transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
+    text-align: left !important;
+
+}
+/*    ----- new css provide by kiran mam ----           */
+  .dropdown-menu1 {
+      -webkit-box-shadow: 0 0 24px 0 rgba(0,0,0,.08), 0 1px 0 0 rgba(0,0,0,.02);
+      box-shadow: 0 0 24px 0 rgba(0,0,0,.08), 0 1px 0 0 rgba(0,0,0,.02);
+      -webkit-animation-name: DropDownSlide;
+      animation-name: DropDownSlide;
+      -webkit-animation-duration: .3s;
+      animation-duration: .3s;
+      -webkit-animation-fill-mode: both;
+      animation-fill-mode: both;
+      margin: 0;
+      position: absolute;
+      z-index: 1000;
+      top: 100%;
+      right: 0;
+      z-index: 1000;
+      display: none;
+      float: left;
+      min-width: 10rem;
+      margin: .125rem 0 0;
+      font-size: .8125rem;
+      color: #495057;
+      text-align: left;
+      list-style: none;
+      background-color: #fff;
+      background-clip: padding-box;
+      border: 1px solid #cccccc;
+      border-radius: 0;
+  }
+  .form-control{
+    font-size: .8rem !important;
+  }
+  .multiselect{
+    font-size: .8rem !important;
+  }

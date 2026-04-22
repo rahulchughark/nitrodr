@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Live Speech to Text</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <style>
+    body {
+      background: #1e1e2f;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      text-align: center;
+    }
+    textarea {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      resize: none;
+      border: none;
+      font-size: 16px;
+      color: #222;
+    }
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .btn {
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      color: #fff;
+    }
+    .btn-primary { background-color: #007bff; }
+    .btn-danger { background-color: #dc3545; }
+    #status { margin-top: 10px; font-size: 16px; }
+    #loader { display: none; width: 24px; height: 24px; margin-left: 10px; }
+  </style>
+</head>
+<body>
+
+  <h2>🎤 Live Speech to Text</h2>
+
+  <div class="controls">
+    <button id="start-btn" class="btn btn-primary">
+      <i class="fa-solid fa-microphone"></i> Start
+    </button>
+    <button id="stop-btn" class="btn btn-danger" disabled>
+      <i class="fa-solid fa-stop"></i> Stop
+    </button>
+    <div class="form-check form-switch d-flex align-items-center gap-2">
+      <input class="form-check-input" type="checkbox" id="grammer-correction"/>
+      <label class="form-check-label" for="grammer-correction">Grammar Correction</label>
+    </div>
+  </div>
+
+  <textarea id="transcript" placeholder="Your speech will appear here..." rows="10" readonly></textarea>
+
+  <div id="status">
+    <i class="fa-solid fa-circle-info"></i> Ready to start...
+    <img id="loader" src="https://i.gifer.com/ZZ5H.gif" alt="Loading..." />
+  </div>
+
+<script>
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if (!SpeechRecognition) {
+  alert("❌ Your browser does not support Speech Recognition. Use Chrome or Edge.");
+} else {
+  const recognition = new SpeechRecognition();
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  recognition.lang = "en-US";
+
+  const startBtn = document.getElementById("start-btn");
+  const stopBtn = document.getElementById("stop-btn");
+  const transcriptArea = document.getElementById("transcript");
+  const statusMessage = document.getElementById("status");
+  const loader = document.getElementById("loader");
+
+  let finalTranscript = "";
+  let recognizing = false;
+
+  const setStatus = (text, icon = "fa-circle-info") => {
+    statusMessage.innerHTML = `<i class="fa-solid ${icon} me-2"></i> ${text}`;
+  };
+
+  recognition.onstart = () => {
+    recognizing = true;
+    setStatus("🎤 Listening... Speak now!", "fa-microphone");
+    loader.style.display = "inline-block";
+  };
+
+  recognition.onresult = (event) => {
+    let interimTranscript = "";
+
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const transcript = event.results[i][0].transcript;
+      if (event.results[i].isFinal) {
+        finalTranscript += transcript + " ";
+      } else {
+        interimTranscript += transcript;
+      }
+    }
+
+    transcriptArea.value = finalTranscript + interimTranscript;
+    transcriptArea.scrollTop = transcriptArea.scrollHeight;
+  };
+
+  recognition.onerror = (event) => {
+    console.error("Speech recognition error:", event.error);
+    setStatus("⚠️ Error: " + event.error, "fa-triangle-exclamation");
+  };
+
+  // 🔁 Auto-restart to fix Chrome buffering
+  recognition.onend = () => {
+    if (recognizing) {
+      recognition.start(); // restart automatically
+    } else {
+      loader.style.display = "none";
+      setStatus("✅ Speech recognition stopped.", "fa-circle-check");
+
+      if (document.getElementById("grammer-correction").checked) {
+        grammerCorrection(finalTranscript.trim());
+      }
+    }
+  };
+
+  startBtn.onclick = () => {
+    finalTranscript = "";
+    transcriptArea.value = "";
+    recognizing = true;
+    recognition.start();
+    startBtn.disabled = true;
+    stopBtn.disabled = false;
+    setStatus("🎙️ Starting recognition...", "fa-microphone");
+  };
+
+  stopBtn.onclick = () => {
+    recognizing = false;
+    recognition.stop();
+    startBtn.disabled = false;
+    stopBtn.disabled = true;
+  };
+
+  function grammerCorrection(speechContent) {
+    if (!speechContent) return;
+
+    setStatus("🧠 Correcting grammar...", "fa-spinner fa-spin");
+    loader.style.display = "inline-block";
+
+    fetch("http://127.0.0.1:8000/text_ai/correct/", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text: speechContent }),
+    })
+      .then(res => res.json())
+      .then(result => {
+        const correctedText = result?.corrected_text || speechContent;
+        transcriptArea.value = correctedText;
+        setStatus("✅ Grammar correction applied.", "fa-check-circle");
+        loader.style.display = "none";
+      })
+      .catch(err => {
+        console.error(err);
+        setStatus("❌ Grammar correction failed.", "fa-xmark-circle");
+        loader.style.display = "none";
+      });
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+# Enable rewriting
+RewriteEngine On
+
+# If the requested file or directory doesn't exist, route to index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [QSA,L]
+
+# Catch actual 404s (for missing PHP/HTML files)
+ErrorDocument 404 404.php

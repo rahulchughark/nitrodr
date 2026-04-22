@@ -1,0 +1,449 @@
+<?php
+
+// function end_session(){
+// 	unset($_SESSION['user_id']);
+// session_destroy();
+// }
+
+// function check_timeout($timeout, &$SESSION)
+//     {
+//         if (isset($_SESSION['LAST_ACTIVITY']))
+//         {        
+//             if((time() - $_SESSION['LAST_ACTIVITY']) > $timeout)
+//             {
+//                 end_session($SESSION);
+//             }
+//             $_SESSION['LAST_ACTIVITY'] = time();
+//         }
+//         else 
+//         {
+//             end_session($SESSION);
+//         }
+// 	}
+	
+function connect_db(){
+	global $ARR_CFGS;
+	if (!isset($GLOBALS['dbcon'])) {
+		$GLOBALS['dbcon'] =	mysqli_connect($ARR_CFGS["db_host"], $ARR_CFGS["db_user"], $ARR_CFGS["db_pass"],$ARR_CFGS["db_name"]) or die("Could not connect to database. Please check configuration and ensure MySQL is running.");
+	}
+}
+
+global $ARR_CFGS;
+	if (!isset($GLOBALS['dbcon'])) {
+		$GLOBALS['dbcon'] =	mysqli_connect($ARR_CFGS["db_host"], $ARR_CFGS["db_user"], $ARR_CFGS["db_pass"],$ARR_CFGS["db_name"]) or die("Could not connect to database. Please check configuration and ensure MySQL is running.");
+	}
+
+function db_query($sql){
+	if($dbcon2==''){
+		if(!isset($GLOBALS['dbcon'])) {
+			connect_db();
+		}
+		$dbcon2	= $GLOBALS['dbcon'];
+	}
+	//print_r($GLOBALS['dbcon']); die;
+	$result	= mysqli_query($GLOBALS['dbcon'],$sql) or	die(db_error($sql));
+	//print_r($result); die;
+	return $result;
+}
+function get_insert_id()
+{
+	$insert_id=mysqli_insert_id($GLOBALS['dbcon']);
+	return $insert_id;
+}
+function db_fetch_array($rs){
+	$array	= mysqli_fetch_array($rs);
+	return $array;
+}
+
+function db_num_array($rs){
+	$array	= mysqli_num_rows($rs);
+	return $array;
+}
+
+function db_scalar($sql, $dbcon2 = null)
+{
+	if($dbcon2==''){
+		if(!isset($GLOBALS['dbcon'])) {
+			connect_db();
+		}
+		$dbcon2	= $GLOBALS['dbcon'];
+	}
+	$result	= db_query($sql, $dbcon2);
+	if ($line =	mysql_fetch_array($result))	{
+		$response =	$line[0];
+	}
+	return $response;
+}
+
+function getSingleresult($sql, $dbcon2 = null){
+	if($dbcon2==''){
+		if(!isset($GLOBALS['dbcon'])) {
+			connect_db();
+		}
+		$dbcon2	= $GLOBALS['dbcon'];
+	}
+	$result	= db_query($sql, $dbcon2);
+	if ($line =	mysqli_fetch_array($result))	{
+		$response =	$line[0];
+	}
+	return $response;
+}
+
+function db_error($sql){
+	echo "<div style='font-family: tahoma; font-size: 14px; color: #000'><br>".mysqli_error($GLOBALS['dbcon'])."<br>";
+	print_error();
+	if(LOCAL_MODE) {
+		echo "<br>sql: $sql";
+	}
+	echo "</div>";
+}
+function getmicrotime(){
+	list($usec,	$sec) =	explode(" ", microtime());
+	return ((float)$usec + (float)$sec);
+}
+
+function is_post_back(){
+	if(count($_POST)>0) {
+		return true;
+	} else {
+		return false;
+	}
+}
+function sqlquery($rs='exe',$tablename,$arr,$update='',$id='',$update2='',$id2=''){
+	$sql = db_query("DESC ".tb_Prefix."$tablename");
+	$row = mysql_fetch_array($sql);
+	if($update == '')
+		$makesql = "insert into ";
+	else
+		$makesql = "update " ;
+	$makesql .= tb_Prefix."$tablename set ";
+	
+	$i = 1;
+	while($row = mysql_fetch_array($sql)){
+		if(array_key_exists($row['Field'], $arr)){
+			if($i != 1)
+				$makesql .= ", ";
+				$makesql .= $row['Field']."='".ms_addslashes((is_array($arr[$row['Field']]))?implode(":",$arr[$row['Field']]):$arr[$row['Field']])."'";
+				$i++;
+			}
+		}
+	if($update)
+		$makesql .= " where ".$update."='".$id."'".(($update2 && $id2)?" and ".$update2."='".$id2."'":"");
+	if($rs == 'show'){
+		echo $makesql;
+		exit;
+	}else{
+		db_query($makesql);
+	}
+	return ($update)?$id:mysql_insert_id();
+}
+
+
+function getFilename($filename)
+{
+	$uniq = uniqid("");
+	$arr=explode('.',$filename);
+	$ext = $arr[count($arr)-1];
+
+	$allowed = "/[^a-z0-9\\_]/i";
+	$arr[0] = preg_replace($allowed,"",$arr[0]);
+			
+	$filename=$uniq.$arr[0]."_.".$ext;
+	
+	return $filename;
+}
+
+
+
+function showmess()
+{
+	if($_SESSION['sessmsg']){
+		
+		echo $_SESSION['sessmsg'];
+		
+		$_SESSION['sessmsg'] = '';
+		unset($_SESSION['sessmsg']);
+	}
+}
+
+function sessset($val){
+	$_SESSION['sessmsg'] = $val;
+}
+
+
+function randomPassword() {
+    $alphabet = "abcdefghijklmnopqrstuwxyzABCDEFGHIJKLMNOPQRSTUWXYZ0123456789";
+    $pass = array(); //remember to declare $pass as an array
+    $alphaLength = strlen($alphabet) - 1; //put the length -1 in cache
+    for ($i = 0; $i < 8; $i++) {
+        $n = rand(0, $alphaLength);
+        $pass[] = $alphabet[$n];
+    }
+    return implode($pass); //turn the array into a string
+}
+
+function send_mail($email,$subject,$message)
+
+{
+    if($subject && $email && $password)
+    {
+        
+       
+	
+	$headers  = 'MIME-Version: 1.0' . "\r\n";
+	$headers .= 'Content-type: text/html; charset=iso-8859-1' . "\r\n";
+	$headers .= 'From: ICT DR Portal <noreplydrportal@arkinfo.in>' . "\r\n";
+        
+        
+        @mail($email,$subject,$message1,$headers);
+        
+        
+    }
+    
+    
+    
+}
+
+function ms_addslashes($var)
+{
+	return is_array($var) ? array_map('ms_addslashes', $var) : addslashes(stripslashes(trim($var)));
+}
+
+function print_error() {
+	$debug_backtrace = debug_backtrace();
+	for ($i = 1; $i < count($debug_backtrace); $i++) {
+		$error = $debug_backtrace[$i];
+		echo "<br>";
+		echo "<div style='color:#000'>";
+		echo "<span>File:</span> ".str_replace(SITE_FS_PATH, '',$error['file'])."<br>";
+		echo "<span>Line:</span> ".$error['line']."<br>";
+		echo "<span>Function:</span> ".$error['function']."<br>";
+		//echo "<b>Args:</b> ";
+		//foreach($error['args'] as $arg) {
+		//	echo "$arg <br>";
+		//}
+		echo "</div>";
+	}
+}
+function redir($url,$inpage=0)
+{
+	if($inpage==0)
+	{
+		header('location: '.$url) or die("Cannot Send to next page");
+		exit;
+	}
+	else
+	{
+		echo '
+		<script type="text/javascript">
+		<!--
+		window.location.href="'.$url.'";
+		-->
+		</SCRIPT>'
+		; 
+		exit;
+	}
+}
+
+function protect_admin_page(){
+
+if ($_SESSION['user_id']=='' || $_SESSION['name']==''){
+		header('Location:index.php');
+		exit;	 
+	}
+	
+}
+function admin_protect(){
+
+if ($_SESSION['user_id']==''){
+		header('Location:index.php');
+		exit;	 
+	}
+	
+}
+
+function cross_login_protect($field){
+	if ($_SESSION['user_id']!=$field){
+		redir('dashboard.php',true);	 
+	}
+}
+
+
+function admin_page()
+{
+	if($_SESSION['user_type']=='ADMIN' || $_SESSION['user_type']=='RM' || $_SESSION['user_type']=='REVIEWER' || $_SESSION['user_type'] == 'SUPERADMIN' || $_SESSION['user_type'] == 'RADMIN'|| $_SESSION['user_type'] == 'OPERATIONS' || $_SESSION['user_type'] == 'OPERATIONS EXECUTIVE'|| $_SESSION['user_type'] == 'RENEWAL TL'|| $_SESSION['user_type'] == 'EM'|| $_SESSION['user_type'] == 'SALES MNGR' || $_SESSION['user_type']=='ISS MNGR' || $_SESSION['user_type']=='RCLR' || $_SESSION['user_type']=='CLR')
+{
+	
+}
+else
+{
+	redir('index.php',true);
+}
+	
+}
+
+function teamLead_page()
+{
+	if($_SESSION['user_type']=='ADMIN' || $_SESSION['user_type']=='RM' || $_SESSION['user_type']=='REVIEWER' || $_SESSION['user_type'] == 'SUPERADMIN' || $_SESSION['user_type'] == 'RADMIN'|| $_SESSION['user_type'] == 'OPERATIONS' || $_SESSION['user_type'] == 'OPERATIONS EXECUTIVE'|| $_SESSION['user_type'] == 'RENEWAL TL'|| $_SESSION['user_type'] == 'EM'|| $_SESSION['user_type'] == 'SALES MNGR' || $_SESSION['user_type']=='ISS MNGR'|| $_SESSION['user_type']=='CLR'|| $_SESSION['user_type']=='TEAM LEADER' || $_SESSION['user_type'] == 'ISS SBE MNGR')
+{
+	
+}
+else
+{
+	redir('index.php',true);
+}
+	
+}
+
+function iss_dashboard(){
+	if($_SESSION['user_type']=='ISS MNGR' || $_SESSION['user_type']=='CLR'){
+
+	}else
+{
+	redir('index.php',true);
+}
+
+}
+
+function sbe_dashboard(){
+	if($_SESSION['user_type']=='ISS SBE MNGR'){
+
+	}else
+{
+	redir('index.php',true);
+}
+
+}
+
+function admin_page_rawLapsed()
+{
+	if($_SESSION['user_type']=='ADMIN' || $_SESSION['user_type']=='RM' || $_SESSION['user_type']=='REVIEWER' || $_SESSION['user_type'] == 'SUPERADMIN' || $_SESSION['user_type'] == 'RADMIN'|| $_SESSION['user_type'] == 'OPERATIONS' || $_SESSION['user_type'] == 'OPERATIONS EXECUTIVE'|| $_SESSION['user_type'] == 'RENEWAL TL'|| $_SESSION['user_type'] == 'EM'|| $_SESSION['user_type'] == 'SALES MNGR' || $_SESSION['user_type']=='ISS MNGR' || $_SESSION['user_type']=='CLR' || $_SESSION['user_type']=='ISS SBE MNGR')
+{
+	
+}
+else
+{
+	redir('index.php',true);
+}
+	
+}
+
+function partner_page(){
+	if($_SESSION['user_type'] == 'MNGR' || $_SESSION['user_type'] == 'USR'){
+
+	}else
+{
+	redir('dashboard.php',true);
+}
+}
+
+function business_owner_page(){
+	if($_SESSION['user_type'] == 'MNGR' || $_SESSION['user_type'] == 'SALES MNGR'){
+
+	}else
+{
+	redir('dashboard.php',true);
+}
+}
+
+ function getextention($fname){
+	$fext=explode(".",$fname);
+	$ext=$fext[count($fext)-1];
+	return $ext;
+}
+
+function week_range($date) {
+    $ts = strtotime($date);
+    $start = (date('w', $ts) == 1) ? $ts : strtotime('last monday', $ts);
+    return array(date('Y-m-d', $start),date('Y-m-d', strtotime('next sunday', $start)));
+}
+function dateDiffInDays($date1, $date2)  
+{ 
+    // Calulating the difference in timestamps 
+    $diff = strtotime($date2) - strtotime($date1); 
+      
+    // 1 day = 24 hours 
+    // 24 * 60 * 60 = 86400 seconds 
+    return abs(round($diff / 86400)); 
+}
+
+function diffhours($startdate,$enddate){
+	$starttimestamp = strtotime($startdate);
+	$endtimestamp = strtotime($enddate);
+	$difference = abs($endtimestamp - $starttimestamp)/3600;
+	return $difference;
+}
+
+function sendMail($addTo, $addCc, $addBcc, $setSubject, $body)
+{
+	$emailSendType = 0 ; // 0 for phpmailer and 1 for sendgrid
+	// echo "<br>";echo "<br>";echo "<br>";echo "<br>to";print_r($addTo);echo "<br>cc";print_r($addCc);echo "<br>";print_r($addBcc);echo "<br>";print_r($setSubject);echo "<br>";print_r($body);	die;
+	if($emailSendType == 0)
+	{
+		$mail = new PHPMailer();
+		// $mail = new PHPMailer();
+		$mail->IsSMTP();  // set mailer to use SMTP
+		$mail->Host = "smtp.office365.com";  // specify main and backup server
+		$mail->SMTPAuth = true; 
+		$mail->Port     = 587;
+		$mail->SMTPSecure = 'tls';     // turn on SMTP authentication
+		$mail->Username = "support@arkinfo.in";  // SMTP username
+		$mail->Password = "Noida"; // SMTP password Noida@123
+		$mail->From ='support@arkinfo.in';// 'noreply@mindbox.co.in';
+		$mail->FromName = 'ICT DR Registration Portal';
+		$mail->AddReplyTo("support@arkinfo.in");
+		
+		$mail->WordWrap = 50;    
+		$mail->IsHTML(true);       
+		$mail->AddReplyTo("no-reply@arkinfo.in", "No-Reply");
+		
+		$mail->Subject = "$setSubject";
+		foreach ($addTo as $to)
+		{     $mail->AddAddress("$to");    }
+		if($addCc){
+			foreach ($addCc as $cc)
+			{		$mail->AddCC("$cc"); 	}
+		}
+		if($addBcc){
+			foreach ($addBcc as $bcc)
+			{		$mail->AddBCC("$bcc");		}
+		}
+		// $mail->AddAddress("pradeep.chahal@arkinfo.in");
+		// $mail->addCC("virendra.kumar@arkinfo.in");
+
+		$mail->Body = $body;
+		 $a =  $mail->Send();
+		// print_r($mail);
+		// echo "<br>";
+		// print_r(error_get_last());
+		// die;
+		$mail->ClearAllRecipients();
+	
+	}else{
+		$email = new \SendGrid\Mail\Mail();
+		$email->setFrom("support@arkinfo.in", "Support");
+		// $sendgrid = new \SendGrid('SG.qEJFAUFrRwaVMyhIM_xXGg.uUYHJqF5Fw7F2gd5TO1ODpHgH7E_zGin9-7ZH5N9BHIjd');
+		$sg_key = getSingleresult("select sg_key from sendgrid_cred limit 1");
+		$sendgrid = new \SendGrid($sg_key);
+
+		foreach ($addTo as $to)
+		{     $email->addTo("$to");    }
+		if($addCc){
+			foreach ($addCc as $cc)
+			{		$email->addCC("$cc"); 	}
+		}
+		if($addBcc){
+			foreach ($addBcc as $bcc)
+			{		$email->addBCC("$bcc");		}
+		}
+
+		$email->setSubject("$setSubject");
+	    $email->addContent("text/html", $body);
+	    $sendgrid->send($email);
+	}
+	
+
+	
+
+}
+?>

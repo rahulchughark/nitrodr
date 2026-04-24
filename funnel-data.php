@@ -82,6 +82,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['excel']) && $_FILES[
     $msg = "Successfully imported {$inserted} records.";
     echo "<div class='alert alert-success'>{$msg}</div>";
 }
+
+
 ?>
 <style>
     .dt-buttons {

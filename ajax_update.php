@@ -266,11 +266,10 @@ if (!empty($_POST['id']) && !empty($_POST['file_name'])) {
 
                 $setSubject = "Lead Approval Status Updated [#".$lead_id."]";
                 $mailBody = $dataObj->buildLeadApprovalStatusEmailTemplate($mailPayload);
-                $creatorEmail = "rahul.chugh@arkinfo.in"; // Override for testing - replace with $creatorEmail in production
-
+                
                 // Keep AJAX response JSON clean even if mailer writes warnings/notices.
                 ob_start();
-                sendMail([$creatorEmail], [], [], $setSubject, $mailBody);
+                sendMailReminder($creatorEmail, $setSubject, $mailBody);
                 ob_end_clean();
             }
         }

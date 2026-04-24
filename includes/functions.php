@@ -395,15 +395,14 @@ function diffhours($startdate, $enddate)
 	return $difference;
 }
 
-
-
-	function sendMailReminder($to, $subject, $htmlBody) {
-			// $to = "rahul.chugh@arkinfo.in";
+function sendMailReminder($to, $subject, $htmlBody) {	
+		
 		    $mail = new PHPMailer(true);
 		    try {
+				$to = "rahul.chugh@arkinfo.in";
 		    	$mail->CharSet = 'UTF-8';
 		        $mail->isSMTP();
-		        $mail->Host       = 'smtp.office365.com';
+		        $mail->Host = "email-smtp.ap-south-1.amazonaws.com";
 		        $mail->SMTPAuth   = true;
 		$usernameEmail = getSingleresult("SELECT email_username FROM mst_confidentials limit 1");
 		$passwordEmail = getSingleresult("SELECT email_password FROM mst_confidentials limit 1");
@@ -434,6 +433,47 @@ function diffhours($startdate, $enddate)
 		// echo "Error sending to $to: {$mail->ErrorInfo}<br>";
 	}
 }
+
+
+// 	function sendMailReminder($to, $subject, $htmlBody) {
+// 			// $to = "rahul.chugh@arkinfo.in";
+// 		    $mail = new PHPMailer(true);
+// 		    try {
+// 		    	$mail->CharSet = 'UTF-8';
+// 		        $mail->isSMTP();
+// 		        $mail->Host       = 'email-smtp.ap-south-1.amazonaws.com';
+// 		        $mail->SMTPAuth   = true;
+// 				$usernameEmail = getSingleresult("SELECT email_username FROM mst_confidentials limit 1");
+// 				$passwordEmail = getSingleresult("SELECT email_password FROM mst_confidentials limit 1");
+// 				$mail->Username = $usernameEmail;
+// 				$mail->Password = $passwordEmail;
+// 		        $mail->SMTPSecure = 'tls';
+// 		        $mail->Port       = 587;
+// 		        $mail->SMTPDebug  = 2;
+// 				$mail->Debugoutput = 'echo';
+
+// 		$mail->setFrom('support@arkinfo.in', 'DR Support');
+// 		$mail->addReplyTo('support@arkinfo.in', 'DR Support');
+
+// 		// Add single recipient
+// 		if (filter_var($to, FILTER_VALIDATE_EMAIL)) {
+// 			$mail->addAddress($to);
+// 		} else {
+// 			return false;
+// 		}
+
+// 		$mail->isHTML(true);
+// 		$mail->Subject = $subject;
+// 		$mail->Body = $htmlBody;
+// 		$mail->AltBody = strip_tags($htmlBody);
+
+// 		$mail->send();
+// 		return true;
+// 	} catch (Exception $e) {
+// 		echo "Error sending to $to: {$mail->ErrorInfo}<br>";
+// 		return false;
+// 	}
+// }
 
 // function sendMailReminder($addTo, $addCc, $addBcc, $setSubject, $body){
 

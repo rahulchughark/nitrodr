@@ -754,7 +754,7 @@ class DataController
                 while ($row = mysqli_fetch_assoc($query)) {
                     
                     // --- Sanitize & Prepare ---
-                    $email     = 'rahul.chugh@arkinfo.in'; // Hardcoded for testing, change to: $row['email']
+                    $email     = $row['email']; // Changed from hardcoded for testing
                     $userName  = htmlspecialchars($row['name'], ENT_QUOTES);
                     $subject   = "Reminder: " . htmlspecialchars($row['subject'], ENT_QUOTES)." {$row['reminder_date']} {$row['reminder_time']}";
 

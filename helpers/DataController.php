@@ -129,6 +129,36 @@ class DataController
         return $body;
     }
 
+    public function buildLeadCreationEmailTemplate($mailData = [])
+    {
+        $creatorName = htmlspecialchars((string)($mailData['creator_name'] ?? 'User'), ENT_QUOTES, 'UTF-8');
+        $companyName = htmlspecialchars((string)($mailData['company_name'] ?? 'N/A'), ENT_QUOTES, 'UTF-8');
+        $customerName = htmlspecialchars((string)($mailData['customer_name'] ?? 'N/A'), ENT_QUOTES, 'UTF-8');
+        $productName = htmlspecialchars((string)($mailData['product_name'] ?? 'N/A'), ENT_QUOTES, 'UTF-8');
+        $licenses = htmlspecialchars((string)($mailData['licenses'] ?? 'N/A'), ENT_QUOTES, 'UTF-8');
+        $expectedClosureDate = htmlspecialchars((string)($mailData['expected_closure_date'] ?? 'N/A'), ENT_QUOTES, 'UTF-8');
+        $leadId = (int)($mailData['lead_id'] ?? 0);
+        $createdAt = htmlspecialchars((string)($mailData['created_at'] ?? date('d-m-Y h:i A')), ENT_QUOTES, 'UTF-8');
+
+        $body = ""
+            . "<div style=\"font-family:Arial,sans-serif;font-size:14px;color:#222;line-height:1.5;\">"
+            . "<p>Hi " . $creatorName . ",</p>"
+            . "<p>A new lead has been successfully added to DR Portal.</p>"
+            . "<table cellpadding=\"8\" cellspacing=\"0\" border=\"1\" style=\"border-collapse:collapse;border-color:#ddd;font-size:13px;\">"
+            . "<tr><td><b>Lead ID</b></td><td>#" . $leadId . "</td></tr>"
+            . "<tr><td><b>Company Name</b></td><td>" . $companyName . "</td></tr>"
+            . "<tr><td><b>Customer Name</b></td><td>" . $customerName . "</td></tr>"
+            . "<tr><td><b>Product</b></td><td>" . $productName . "</td></tr>"
+            . "<tr><td><b>No. of Licenses</b></td><td>" . $licenses . "</td></tr>"
+            . "<tr><td><b>Expected Close Date</b></td><td>" . $expectedClosureDate . "</td></tr>"
+            . "<tr><td><b>Created At</b></td><td>" . $createdAt . "</td></tr>"
+            . "</table>"
+            . "<p style=\"margin-top:14px;\">Thanks,<br>DR Support</p>"
+            . "</div>";
+
+        return $body;
+    }
+
     public function update(array $fields,$table_name, $where_condition){
         
         $query = '';  

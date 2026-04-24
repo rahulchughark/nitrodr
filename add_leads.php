@@ -152,32 +152,36 @@ if ($typeId > 0) {
             // WHERE id = {$last_inserted_id}
             // ");  
 
-            $adminsEmail = db_query("select email from users where user_type IN ('SUPERADMIN','ADMIN')");
-            while ($rowAd = db_fetch_array($adminsEmail)) {
-                $addTo[] = $rowAd['email'];                
-            }
-            $operEmail = db_query("select email from users where user_type = 'OPERATIONS'");            
-            while ($rowOp = db_fetch_array($operEmail)) {
-                $addCc[] = $rowOp['email'];                
-            }
-      
-              $setSubject = "New Lead Added to DR Portal from " . $_POST['r_name'] . " (" . $_POST['r_user'] . ")";
-              $body    = "Hi,<br><br> There is new lead added to ICT DR Portal with details as below:-<br><br>
-              <ul>
-              <li><b>Customer Company</b> : " . $_POST['customer_company_name'] . " </li>
-              <li><b>Customer Name</b> : " . $_POST['customer_name'] . " </li>
-              <li><b>Email</b> : " . $_POST['email'] . " </li>
-              <li><b>Phone</b> : " . $_POST['phone'] . " </li>
-              <li><b>Product</b> : " . $_POST['product'] . " </li>
-              <li><b>Licenses</b> : " . $_POST['number_of_licenses'] . " </li>
-              <li><b>Expected Close Date</b> : " . $_POST['expected_closure_date'] . " </li>
-              </ul><br>
-              Thanks,<br>
-              ICT DR Portal";
+            // Email notification to the lead creator for new lead.
+            $creatorEmail = trim((string)($_SESSION['email'] ?? ''));
+            if (filter_var($creatorEmail, FILTER_VALIDATE_EMAIL)) {
+                $creatorName = trim((string)($_SESSION['name'] ?? 'User'));
+                
+                // Get product name for email
+                $productId = intval($_POST['product']);
+                $pName = trim((string)getSingleresult("SELECT product_name FROM tbl_product WHERE id='".$productId."' LIMIT 1"));
+                $pName = ($pName !== '') ? $pName : 'N/A';
 
-              $addBcc[] = '';
-            //   sendMail($addTo, $addCc, $addBcc, $setSubject, $body);
-              redir("admin_leads.php?add=success",true);
+                $mailPayload = [
+                    'lead_id' => $lead_id,
+                    'creator_name' => $creatorName,
+                    'company_name' => (string)($_POST['customer_company_name'] ?? 'N/A'),
+                    'customer_name' => (string)($_POST['customer_name'] ?? 'N/A'),
+                    'product_name' => $pName,
+                    'licenses' => (string)($_POST['number_of_licenses'] ?? 'N/A'),
+                    'expected_closure_date' => (string)($_POST['expected_closure_date'] ?? 'N/A'),
+                    'created_at' => date('d-m-Y h:i A')
+                ];
+
+                $setSubject = "New Lead Created [#".$lead_id."]";
+                $mailBody = $dataObj->buildLeadCreationEmailTemplate($mailPayload);
+
+                ob_start();
+                sendMailReminder($creatorEmail, $setSubject, $mailBody);
+                ob_end_clean();
+            }
+
+            redir("admin_leads.php?add=success",true);
         }
 }?>
 <style>

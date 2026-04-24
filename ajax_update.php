@@ -346,6 +346,39 @@ if (!empty($_POST['id']) && !empty($_POST['file_name'])) {
             $createdBy = (int)($_SESSION['user_id'] ?? 0);
 
             db_query("INSERT INTO lead_modify_log (`lead_id`, `type`, `stage`, `previous_name`, `modify_name`, `created_date`, `created_by`, `log_status`, `timestamp`, `created_by_clm`) VALUES ('".$lead_id."', 'Stage', NULL, '".$previousName."', '".$modifyName."', NOW(), '".$createdBy."', 'Active', NOW(), '0')");
+
+            // Email notification to the lead creator for stage change.
+            $leadMailQ = db_query("SELECT o.id, o.customer_company_name, o.customer_name, o.product, o.number_of_licenses, o.created_by, u.email AS creator_email, u.name AS creator_name FROM orders o LEFT JOIN users u ON u.id=o.created_by WHERE o.id='".$lead_id."' LIMIT 1");
+            $leadMailData = $leadMailQ ? db_fetch_array($leadMailQ) : null;
+
+            $creatorEmail = trim((string)($leadMailData['creator_email'] ?? ''));
+            if (filter_var($creatorEmail, FILTER_VALIDATE_EMAIL)) {
+                $updatedByName = trim((string)($_SESSION['name'] ?? ''));
+                if ($updatedByName === '' && $createdBy > 0) {
+                    $updatedByName = trim((string)getSingleresult("SELECT name FROM users WHERE id='".$createdBy."' LIMIT 1"));
+                }
+
+                $mailPayload = [
+                    'lead_id' => (int)($leadMailData['id'] ?? $lead_id),
+                    'creator_name' => (string)($leadMailData['creator_name'] ?? 'User'),
+                    'company_name' => (string)($leadMailData['customer_company_name'] ?? 'N/A'),
+                    'customer_name' => (string)($leadMailData['customer_name'] ?? 'N/A'),
+                    'product_name' => (string)($leadMailData['product'] ?? 'N/A'),
+                    'licenses' => (string)($leadMailData['number_of_licenses'] ?? 'N/A'),
+                    'previous_name' => $previousName,
+                    'modify_name' => $modifyName,
+                    'updated_by' => ($updatedByName !== '' ? $updatedByName : 'System'),
+                    'updated_at' => date('d-m-Y h:i A')
+                ];
+
+                $setSubject = "Lead Stage Updated [#".$lead_id."]";
+                $mailBody = $dataObj->buildLeadStageStatusEmailTemplate($mailPayload);
+
+                // Keep AJAX response JSON clean even if mailer writes warnings/notices.
+                ob_start();
+                sendMailReminder($creatorEmail, $setSubject, $mailBody);
+                ob_end_clean();
+            }
         }
 
         echo json_encode([

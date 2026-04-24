@@ -59,6 +59,42 @@ class DataController
         return $body;
     }
 
+    public function buildLeadOpportunityStatusEmailTemplate($mailData = [])
+    {
+        $creatorName = htmlspecialchars((string)($mailData['creator_name'] ?? 'User'), ENT_QUOTES, 'UTF-8');
+        $companyName = htmlspecialchars((string)($mailData['company_name'] ?? 'N/A'), ENT_QUOTES, 'UTF-8');
+        $customerName = htmlspecialchars((string)($mailData['customer_name'] ?? 'N/A'), ENT_QUOTES, 'UTF-8');
+        $productName = htmlspecialchars((string)($mailData['product_name'] ?? 'N/A'), ENT_QUOTES, 'UTF-8');
+        $licenses = htmlspecialchars((string)($mailData['licenses'] ?? 'N/A'), ENT_QUOTES, 'UTF-8');
+        $updatedBy = htmlspecialchars((string)($mailData['updated_by'] ?? 'System'), ENT_QUOTES, 'UTF-8');
+        $leadId = (int)($mailData['lead_id'] ?? 0);
+        $previousName = htmlspecialchars((string)($mailData['previous_name'] ?? 'Lead'), ENT_QUOTES, 'UTF-8');
+        $modifyName = htmlspecialchars((string)($mailData['modify_name'] ?? 'Opportunity'), ENT_QUOTES, 'UTF-8');
+        $opportunityConverted = htmlspecialchars((string)($mailData['is_opportunity_converted'] ?? 'No'), ENT_QUOTES, 'UTF-8');
+        $updatedAt = htmlspecialchars((string)($mailData['updated_at'] ?? date('d-m-Y h:i A')), ENT_QUOTES, 'UTF-8');
+
+        $body = ""
+            . "<div style=\"font-family:Arial,sans-serif;font-size:14px;color:#222;line-height:1.5;\">"
+            . "<p>Hi " . $creatorName . ",</p>"
+            . "<p>The opportunity status of your lead has been updated on DR Portal.</p>"
+            . "<table cellpadding=\"8\" cellspacing=\"0\" border=\"1\" style=\"border-collapse:collapse;border-color:#ddd;font-size:13px;\">"
+            . "<tr><td><b>Lead ID</b></td><td>#" . $leadId . "</td></tr>"
+            . "<tr><td><b>Company Name</b></td><td>" . $companyName . "</td></tr>"
+            . "<tr><td><b>Customer Name</b></td><td>" . $customerName . "</td></tr>"
+            . "<tr><td><b>Product</b></td><td>" . $productName . "</td></tr>"
+            . "<tr><td><b>No. of Licenses</b></td><td>" . $licenses . "</td></tr>"
+            . "<tr><td><b>Previous Type</b></td><td>" . $previousName . "</td></tr>"
+            . "<tr><td><b>Current Type</b></td><td>" . $modifyName . "</td></tr>"
+            . "<tr><td><b>Opportunity Converted</b></td><td>" . $opportunityConverted . "</td></tr>"
+            . "<tr><td><b>Updated By</b></td><td>" . $updatedBy . "</td></tr>"
+            . "<tr><td><b>Updated At</b></td><td>" . $updatedAt . "</td></tr>"
+            . "</table>"
+            . "<p style=\"margin-top:14px;\">Thanks,<br>DR Support</p>"
+            . "</div>";
+
+        return $body;
+    }
+
     public function update(array $fields,$table_name, $where_condition){
         
         $query = '';  

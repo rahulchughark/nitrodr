@@ -408,6 +408,28 @@ select.form-control:disabled {
                         <div class="modal-body">
                             <div class="row">
                                 <div class="col-md-6 form-group">
+                                    <label for="license_type" class="control-label">License Type</label>
+                                    <select name="license_type" class="form-control" id="license_type">
+                                        <option value="">---Select---</option>
+                                        <option value="Fresh">Fresh</option>
+                                        <option value="Renewal">Renewal</option>
+                                        <option value="Expansion">Expansion</option>
+                                    </select>
+                                </div>
+
+                                <div class="col-md-6 form-group" id="renewal_type_section" style="display:none;">
+                                    <label for="renewal_type" class="control-label">Type of renewal</label>
+                                    <select name="renewal_type" class="form-control" id="renewal_type">
+                                        <option value="">---Select---</option>
+                                        <option value="FTR">FTR</option>
+                                        <option value="RR">RR</option>
+                                        <option value="Expansion">Expansion</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 form-group">
                                     <label for="product_of_interest" class="control-label">Product of Interest</label>
                                     <select name="product_of_interest" class="form-control" id="product_of_interest">
                                         <option value="">---Select---</option>
@@ -481,6 +503,18 @@ select.form-control:disabled {
                         var isPartnerRole = <?= $isPartnerRole ? 'true' : 'false' ?>;
                         var productOfInterest = document.getElementById('product_of_interest').value;
                         var product = document.getElementById('product').value;
+                        var licenseType = document.getElementById('license_type').value;
+                        var renewalTypeSection = document.getElementById('renewal_type_section');
+                        var renewalTypeInput = document.getElementById('renewal_type');
+                        
+                        if (licenseType === 'Renewal') {
+                            renewalTypeSection.style.display = 'block';
+                        } else {
+                            renewalTypeSection.style.display = 'none';
+                            if (renewalTypeInput) renewalTypeInput.value = '';
+                        }
+                        
+                        var renewalType = renewalTypeInput ? renewalTypeInput.value : '';
                         
                         var termsSection = document.getElementById('terms_and_conditions_section');
                         var acceptTermsCheckbox = document.getElementById('accept_terms');
@@ -505,12 +539,17 @@ select.form-control:disabled {
                         var description = document.querySelector('#productDescription select');
                         var descriptionValid = description ? description.value !== '' : true;
                         
-                        var enable = productOfInterest !== '' && product !== '' && subProductValid && descriptionValid && acceptTermsValid;
+                        var licenseTypeValid = licenseType !== '';
+                        var renewalTypeValid = (licenseType === 'Renewal') ? (renewalType !== '') : true;
+                        
+                        var enable = productOfInterest !== '' && product !== '' && subProductValid && descriptionValid && acceptTermsValid && licenseTypeValid && renewalTypeValid;
                         document.getElementById('submit_btn').disabled = !enable;
                     }
                     document.getElementById('product_of_interest').addEventListener('change', checkProductFormValidity);
                     document.getElementById('product').addEventListener('change', checkProductFormValidity);
                     document.getElementById('accept_terms').addEventListener('change', checkProductFormValidity);
+                    document.getElementById('license_type').addEventListener('change', checkProductFormValidity);
+                    document.getElementById('renewal_type').addEventListener('change', checkProductFormValidity);
                     // Listen for dynamically loaded selects
                     var observer = new MutationObserver(function() {
                         var subProduct = document.querySelector('#productType select');

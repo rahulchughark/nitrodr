@@ -35,7 +35,7 @@
             return trim((string) $name) !== '' ? trim((string) $name) : (string) $id;
         }
         if ($field === 'city_id') {
-            $name = getSingleresult("SELECT city FROM cities WHERE id='" . $id . "' LIMIT 1");
+            $name = getSingleresult("SELECT name FROM city WHERE id='" . $id . "' LIMIT 1");
             return trim((string) $name) !== '' ? trim((string) $name) : (string) $id;
         }
         if ($field === 'industry_id') {
@@ -392,7 +392,7 @@
             state_id, city_id, address, industry_id, existing_nitro_customer,
             product, sub_product, number_of_licenses, subscription_term, expected_closure_date,
             competition_involved" . $commentInsertColumns . $productInterestInsertColumns . ", lead_source_id, stage_id, proof_engagement_id, partner_id, align_to,
-            upload_file, status, created_by_category, created_by, created_at, description
+            upload_file, status, created_by_category, created_by, created_at, description, license_type, renewal_type
         ) VALUES (
             '" . $_POST['customer_company_name'] . "',
             '" . $_POST['customer_name'] . "',
@@ -420,7 +420,9 @@
             '" . $insertCreatedByCategory . "',
             '" . $_SESSION['user_id'] . "',
             '" . $current_date . "',
-            '" . $_POST['description'] . "'
+            '" . $_POST['description'] . "',
+            '" . ($_POST['license_type'] ?? '') . "',
+            '" . ($_POST['renewal_type'] ?? '') . "'
         )");
 
         $lead_id = get_insert_id();
@@ -625,7 +627,7 @@ label {
                                                     <select name="city_id" class="form-control" required>
                                                         <option value="">---Select---</option>
                                                         <?php if (! empty($row['city_id'])) {?>
-                                                            <option value="<?php echo (int)$row['city_id'] ?>" selected><?php echo htmlspecialchars(getSingleresult("SELECT city FROM cities WHERE id='".(int)$row['city_id']."' LIMIT 1"), ENT_QUOTES, 'UTF-8') ?></option>
+                                                            <option value="<?php echo (int)$row['city_id'] ?>" selected><?php echo htmlspecialchars(getSingleresult("SELECT name FROM city WHERE id='".(int)$row['city_id']."' LIMIT 1"), ENT_QUOTES, 'UTF-8') ?></option>
                                                         <?php }?>
                                                     </select>
                                                 </div>
@@ -709,6 +711,17 @@ label {
                                                     <input type="number" name="number_of_licenses" min="1" class="form-control" placeholder="" value="<?php echo htmlspecialchars($row['number_of_licenses'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required>
                                                 </div>
                                             </div>
+                                            <div class="form-group row">
+                                                <label class="col-sm-5 col-form-label">License Type</label>
+                                                <div class="col-sm-7">
+                                                    <select disabled name="license_type" id="license_type" class="form-control">
+                                                        <option value="">---Select---</option>
+                                                        <option value="Fresh" <?php echo (($row['license_type'] ?? '') === 'Fresh') ? 'selected' : ''; ?>>Fresh</option>
+                                                        <option value="Renewal" <?php echo (($row['license_type'] ?? '') === 'Renewal') ? 'selected' : ''; ?>>Renewal</option>
+                                                        <option value="Expansion" <?php echo (($row['license_type'] ?? '') === 'Expansion') ? 'selected' : ''; ?>>Expansion</option>
+                                                    </select>
+                                                </div>
+                                            </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group row">
@@ -788,9 +801,27 @@ label {
                                                     pSelect.addEventListener('change', toggleSubTerm);
                                                     setTimeout(toggleSubTerm, 100);
                                                 }
+
+                                                function toggleRenewalType() {
+                                                    var licenseType = document.getElementById('license_type');
+                                                    var renewalRow = document.getElementById('renewal_type_row');
+                                                    if (licenseType && renewalRow) {
+                                                        if (licenseType.value === 'Renewal') {
+                                                            renewalRow.style.display = 'flex';
+                                                        } else {
+                                                            renewalRow.style.display = 'none';
+                                                        }
+                                                    }
+                                                }
+                                                var lSelect = document.getElementById('license_type');
+                                                if(lSelect) {
+                                                    lSelect.addEventListener('change', toggleRenewalType);
+                                                }
+
                                                 // Handle potential ajax resets
                                                 if (window.jQuery) {
                                                     $('body').on('change', '#product_select', toggleSubTerm);
+                                                    $('body').on('change', '#license_type', toggleRenewalType);
                                                 }
                                             });
                                             </script>
@@ -798,6 +829,17 @@ label {
                                                 <label class="col-sm-5 col-form-label">Expected closure date<span class="text-danger">*</span></label>
                                                 <div class="col-sm-7">
                                                     <input type="date" name="expected_closure_date" id="datepicker-close-date" class="form-control" value="<?php echo htmlspecialchars($row['expected_closure_date'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required autocomplete="off">
+                                                </div>
+                                            </div>
+                                            <div class="form-group row" id="renewal_type_row" style="<?php echo (($row['license_type'] ?? '') === 'Renewal') ? '' : 'display:none;'; ?>">
+                                                <label class="col-sm-5 col-form-label">Type of renewal</label>
+                                                <div class="col-sm-7">
+                                                    <select disabled name="renewal_type" id="renewal_type" class="form-control">
+                                                        <option value="">---Select---</option>
+                                                        <option value="FTR" <?php echo (($row['renewal_type'] ?? '') === 'FTR') ? 'selected' : ''; ?>>FTR</option>
+                                                        <option value="RR" <?php echo (($row['renewal_type'] ?? '') === 'RR') ? 'selected' : ''; ?>>RR</option>
+                                                        <option value="Expansion" <?php echo (($row['renewal_type'] ?? '') === 'Expansion') ? 'selected' : ''; ?>>Expansion</option>
+                                                    </select>
                                                 </div>
                                             </div>
                                         </div>

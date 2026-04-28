@@ -8,6 +8,8 @@ $dataObj = new DataController;
 $leadId = isset($_GET['lead']) ? intval($_GET['lead']) : 0;
 $typeId = isset($_GET['type']) ? intval($_GET['type']) : 0;
 $productInterest = isset($_GET['product_of_interest']) ? trim((string)$_GET['product_of_interest']) : '';
+$licenseType = isset($_GET['license_type']) ? trim((string)$_GET['license_type']) : '';
+$renewalType = isset($_GET['renewal_type']) ? trim((string)$_GET['renewal_type']) : '';
 
 $productName = '';
 $subProductName = '';
@@ -94,7 +96,7 @@ if ($typeId > 0) {
         state_id, city_id, address, industry_id, existing_nitro_customer, 
         product, sub_product, number_of_licenses, subscription_term, expected_closure_date, 
         competition_involved".$commentInsertColumns.$productInterestInsertColumns.", lead_source_id, stage_id, proof_engagement_id, partner_id, align_to,
-        upload_file, status, created_by_category,created_by, created_at, description
+        upload_file, status, created_by_category,created_by, created_at, description, license_type, renewal_type
     ) VALUES (
         '".$_POST['customer_company_name']."', 
         '".$_POST['customer_name']."', 
@@ -122,7 +124,9 @@ if ($typeId > 0) {
         '".$insertCreatedByCategory."',
         '".$_SESSION['user_id']."',
         '".$current_date."',
-        '".$_POST['description']."'
+        '".$_POST['description']."',
+        '".($_POST['license_type'] ?? '')."',
+        '".($_POST['renewal_type'] ?? '')."'
     )");
     
     $lead_id = get_insert_id();       
@@ -444,6 +448,30 @@ label {
                                                     </select>
                                                     <?php if (!empty($_GET['description'])) echo '<input type="hidden" name="description" value="' . htmlspecialchars($selectedDescriptionId, ENT_QUOTES, 'UTF-8') . '">'; ?>
                                              </div>
+                                            </div>
+                                            <div class="form-group row">
+                                                <label class="col-sm-5 col-form-label">License Type</label>
+                                                <div class="col-sm-7">
+                                                    <select <?php echo (!empty($licenseType)) ? 'disabled' : ''; ?> name="license_type" class="form-control">
+                                                        <option value="">---Select---</option>
+                                                        <option value="Fresh" <?php echo ($licenseType == 'Fresh') ? 'selected' : ''; ?>>Fresh</option>
+                                                        <option value="Renewal" <?php echo ($licenseType == 'Renewal') ? 'selected' : ''; ?>>Renewal</option>
+                                                        <option value="Expansion" <?php echo ($licenseType == 'Expansion') ? 'selected' : ''; ?>>Expansion</option>
+                                                    </select>
+                                                    <?php if (!empty($licenseType)) echo '<input type="hidden" name="license_type" value="' . htmlspecialchars($licenseType, ENT_QUOTES, 'UTF-8') . '">'; ?>
+                                                </div>
+                                            </div>
+                                            <div class="form-group row" id="renewal_type_row" style="<?php echo ($licenseType == 'Renewal') ? '' : 'display:none;'; ?>">
+                                                <label class="col-sm-5 col-form-label">Type of renewal</label>
+                                                <div class="col-sm-7">
+                                                    <select <?php echo (!empty($licenseType)) ? 'disabled' : ''; ?> name="renewal_type" class="form-control">
+                                                        <option value="">---Select---</option>
+                                                        <option value="FTR" <?php echo ($renewalType == 'FTR') ? 'selected' : ''; ?>>FTR</option>
+                                                        <option value="RR" <?php echo ($renewalType == 'RR') ? 'selected' : ''; ?>>RR</option>
+                                                        <option value="Expansion" <?php echo ($renewalType == 'Expansion') ? 'selected' : ''; ?>>Expansion</option>
+                                                    </select>
+                                                    <?php if (!empty($licenseType)) echo '<input type="hidden" name="renewal_type" value="' . htmlspecialchars($renewalType, ENT_QUOTES, 'UTF-8') . '">'; ?>
+                                                </div>
                                             </div>
                                             <div class="form-group row" id="subscription_term_container">
                                                 <label class="col-sm-5 col-form-label">Subscription term<span class="text-danger">*</span></label>

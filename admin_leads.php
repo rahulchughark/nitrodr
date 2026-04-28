@@ -529,6 +529,8 @@ if($_POST['save_partner_csv']){
                                         <th>Expiry Date</th>
                                         <th>Expire In</th>
                                         <th>Approval</th>
+                                        <th>Created By</th>
+                                        <th>Partner Name</th>
                                         <th>Created At</th>
                                         <th>Action</th>
                                     </tr>
@@ -632,6 +634,8 @@ if($_POST['save_partner_csv']){
                             { data: 'expiry_date' },
                             { data: 'expire_in' },
                             { data: 'approval' },
+                            { data: 'created_by_name' },
+                            { data: 'partner_name' },
                             { data: 'created_at', className: 'text-nowrap' },
                             { data: 'action', className: 'text-nowrap' }
                         ]

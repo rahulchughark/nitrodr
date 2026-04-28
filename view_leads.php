@@ -465,11 +465,13 @@ while ($callLogRow = db_fetch_array($callLogsQuery)) {
                             <div class="view-row"><div class="view-label">Product Interest</div><div class="view-value"><?= text_or_na($productInterestNameMap !== '' ? $productInterestNameMap : $productInterestValue) ?></div></div>
                             <div class="view-row"><div class="view-label">Sub Product</div><div class="view-value"><?= text_or_na($subProductNameMap !== '' ? $subProductNameMap : ($row['sub_product'] ?? '')) ?></div></div>
                             <div class="view-row"><div class="view-label">Number of licenses</div><div class="view-value"><?= text_or_na($row['number_of_licenses'] ?? '') ?></div></div>
+                            <div class="view-row"><div class="view-label">License Type</div><div class="view-value"><?= text_or_na($row['license_type'] ?? '') ?></div></div>
                         </div>
                         <div class="col-md-6">
                             <div class="view-row"><div class="view-label">Product</div><div class="view-value"><?= text_or_na($productNameMap !== '' ? $productNameMap : ($row['product'] ?? '')) ?></div></div>
                             <div class="view-row"><div class="view-label">Product Description</div><div class="view-value"><?= text_or_na($productDescriptionNameMap !== '' ? $productDescriptionNameMap : ($row['description'] ?? '')) ?></div></div>
                             <div class="view-row"><div class="view-label">Subscription term</div><div class="view-value"><?= $subscriptionTermText ?></div></div>
+                            <div class="view-row"><div class="view-label">Renewal Type</div><div class="view-value"><?= text_or_na($row['renewal_type'] ?? '') ?></div></div>
                             <div class="view-row"><div class="view-label">Expected closure date</div><div class="view-value"><?= !empty($row['expected_closure_date']) ? date('d-m-Y', strtotime($row['expected_closure_date'])) : 'N/A' ?></div></div>
                         </div>
                     </div>

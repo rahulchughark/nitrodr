@@ -362,11 +362,12 @@ $totalData = mysqli_num_rows($query);
 $totalFiltered = $totalData;
 
 
-$sql = "SELECT o.*, s.name as stage_name, pe.name as proof_engagement_name, creator.name as created_by_name ";
+$sql = "SELECT o.*, s.name as stage_name, pe.name as proof_engagement_name, creator.name as created_by_name, p.name as partner_name ";
 $sql .= "FROM orders as o 
 		 LEFT JOIN tbl_mst_stage as s ON s.id = o.stage_id
 		 LEFT JOIN tbl_mst_proof_engagement as pe ON pe.id = o.proof_engagement_id
 		 LEFT JOIN users as creator ON creator.id = o.created_by
+		 LEFT JOIN partners as p ON p.id = creator.team_id
 		 $joinC
 		 WHERE o.is_deleted = 0 AND o.is_opportunity = 0";
 	 
@@ -415,6 +416,7 @@ while($data = db_fetch_array($query)) {
 	$nestedData['stage_id'] = $data['stage_name'] ? $data['stage_name'] : '';
 	$nestedData['proof_engagement_id'] = $data['proof_engagement_name'] ? $data['proof_engagement_name'] : '';
 	$nestedData['created_by_name'] = $data['created_by_name'] ? $data['created_by_name'] : '-';
+	$nestedData['partner_name'] = $data['partner_name'] ? $data['partner_name'] : '-';
 
 	$nestedData['expiry_date'] = 'N/A';
 	$nestedData['expire_in'] = 'N/A';

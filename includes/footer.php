@@ -297,17 +297,21 @@
         var product = $('#product').val();
         var product_of_interest = $('#product_of_interest').val() || '';
         var interestQuery = '&product_of_interest=' + encodeURIComponent(product_of_interest);
-        var description = $('#product_description').val() || '';
+        var description = $('select[name="description"]').val() || '';
         var descriptionQuery = '&description=' + encodeURIComponent(description);
+        var license_type = $('#license_type').val() || '';
+        var licenseQuery = '&license_type=' + encodeURIComponent(license_type);
+        var renewal_type = $('#renewal_type').val() || '';
+        var renewalQuery = '&renewal_type=' + encodeURIComponent(renewal_type);
       
         if(product){
             var user_type = "<?=$_SESSION['user_type']?>";
             if(user_type == 'CLR'){
-                            window.location = 'add_leads.php?lead=' + product + '&type=' + product_type + interestQuery + '&description=' + description;
+                            window.location = 'add_leads.php?lead=' + product + '&type=' + product_type + interestQuery + '&description=' + description + licenseQuery + renewalQuery;
             }else if(user_type == 'MNGR' || user_type == 'USR'){
-                            window.location = 'add_order.php?lead=' + product + '&type=' + product_type + interestQuery + '&description=' + description;
+                            window.location = 'add_order.php?lead=' + product + '&type=' + product_type + interestQuery + '&description=' + description + licenseQuery + renewalQuery;
             }else{
-                            window.location = 'add_leads.php?lead=' + product + '&type=' + product_type + interestQuery + '&description=' + description;
+                            window.location = 'add_leads.php?lead=' + product + '&type=' + product_type + interestQuery + '&description=' + description + licenseQuery + renewalQuery;
             }
 
         }

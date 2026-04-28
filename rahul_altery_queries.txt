@@ -35,3 +35,7 @@ ALTER TABLE `opportunity_attachments` CHANGE `parent_id` `parent_pi_id` INT(11) 
 
 ALTER TABLE tbl_mst_invoice
 ADD COLUMN advance_amount DECIMAL(15,2) DEFAULT 0 AFTER tds;
+
+
+#28-04-2026:
+ALTER TABLE `orders` ADD `license_type` VARCHAR(254) NULL DEFAULT NULL AFTER `lead_source_id`, ADD `renewal_type` VARCHAR(254) NULL DEFAULT NULL AFTER `license_type`;

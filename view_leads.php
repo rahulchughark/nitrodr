@@ -288,7 +288,101 @@ if ($isApproved === 2 || $isApproved === 3) {
         .lead-view-card .view-label, .lead-view-card .view-value { width: 100%; }
     }
 </style>
-
+ <style>
+        #approvalPriceModal .modal-content {
+            border: none !important;
+            border-radius: 16px !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+            background: #ffffff !important;
+            overflow: hidden !important;
+            padding: 0 !important;
+        }
+        #approvalPriceModal .modal-header {
+            padding: 0 !important;
+            border: none !important;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        #approvalPriceModal .modal-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            font-size: 1.25rem;
+        }
+        #approvalPriceModal .close {
+            background: transparent !important;
+            color: white !important;
+            border: none !important;
+            position: relative !important;
+            top: 0 !important;
+            right: 0 !important;
+            border-radius: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            font-size: 28px !important;
+            font-weight: 300 !important;
+            opacity: 0.8 !important;
+            cursor: pointer;
+        }
+        #approvalPriceModal .close:hover {
+            opacity: 1 !important;
+        }
+        #approvalPriceModal .modal-body {
+            padding: 30px 24px;
+        }
+        #approvalPriceModal .form-group label {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            color: #4a5568;
+            margin-bottom: 8px;
+        }
+        #approvalPriceModal .form-control {
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            padding: 12px 16px;
+            height: auto;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            color: #2d3748;
+        }
+        #approvalPriceModal .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        #approvalPriceModal .modal-footer {
+            border-top: 1px solid #edf2f7;
+            padding: 16px 24px;
+            background-color: #f8fafc;
+        }
+        #approvalPriceModal .btn {
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: 600;
+            font-family: 'Outfit', sans-serif;
+            transition: all 0.3s ease;
+        }
+        #approvalPriceModal .btn-secondary {
+            background-color: #edf2f7;
+            color: #718096;
+            border: none;
+        }
+        #approvalPriceModal .btn-secondary:hover {
+            background-color: #e2e8f0;
+            color: #4a5568;
+        }
+        #approvalPriceModal .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+        }
+        #approvalPriceModal .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.35);
+        }
+        #approvalPriceModal .btn-primary:active {
+            transform: translateY(0);
+        }
+    </style>
 
 <div class="main-content">
     <div class="page-content">
@@ -581,7 +675,7 @@ if ($isApproved === 2 || $isApproved === 3) {
                         
                         <div class="col-md-6">
                             <div class="view-row">
-                                <div class="view-label">Approval</div>
+                                <div class="view-label">Approval <?php if ($isApproved === 1 && !empty($row['price'])) { echo '<span style="color:#2ecc71; font-size:0.95rem; font-weight:600; display:inline-block; margin-left:8px;">(Price: ₹'.htmlspecialchars($row['price'], ENT_QUOTES, 'UTF-8').')</span>'; } ?></div>
                                 <div class="view-value">
                                     <div class="approval-segment <?= ($isUsrRole || $isApprovalLocked) ? 'disabled' : '' ?>" id="approvalSegment" title="<?= $isApprovalLocked ? 'Now you cannot change the approval status because it is Approved now' : '' ?>">
                                         <div class="segmented" role="tablist" aria-label="Approval Status">
@@ -637,7 +731,7 @@ if ($isApproved === 2 || $isApproved === 3) {
                     <?php } ?>
                     <div class="row mt-2">
                         <div class="col-md-6">
-                            <div class="view-row"><div class="view-label">Approval</div><div class="view-value"><?php
+                            <div class="view-row"><div class="view-label">Approval <?php if ($isApproved === 1 && !empty($row['price'])) { echo '<span style="color:#2ecc71; font-size:0.95rem; font-weight:600; display:inline-block; margin-left:8px;">(Price: ₹'.htmlspecialchars($row['price'], ENT_QUOTES, 'UTF-8').')</span>'; } ?></div><div class="view-value"><?php
                                 $apText = ($isApproved === 1) ? 'Approved' : (($isApproved === 2) ? 'Rejected' : (($isApproved === 3) ? 'Onhold' : 'Pending'));
                                 $apClass = ($isApproved === 1) ? 'status-approved' : (($isApproved === 2) ? 'status-rejected' : (($isApproved === 3) ? 'status-onboard' : 'status-pending'));
                                 echo '<span id="approvalActionBadge" class="status-badge ' . $apClass . '">' . htmlspecialchars($apText, ENT_QUOTES, 'UTF-8') . '</span>';
@@ -773,6 +867,32 @@ if ($isApproved === 2 || $isApproved === 3) {
                     <button type="submit" name="submit_call_log" value="1" id="callLogSubmitBtn" class="btn btn-primary">Submit</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<div id="approvalPriceModal" class="modal fade" role="dialog" style="backdrop-filter: blur(5px);">
+   
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="w-100 d-flex align-items-center justify-content-between" style="padding: 20px 24px;">
+                    <h5 class="modal-title text-white m-0"><i class="fa fa-tag mr-2"></i> Pricing Required</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="modal_price_lead_id">
+                <input type="hidden" id="modal_price_status" value="1">
+                <div class="form-group">
+                    <label class="font-weight-bold"><i class="fa fa-dollar-sign mr-1 text-primary"></i> Enter Price <span class="text-danger">*</span></label>
+                    <input type="number" id="modal_approval_price" class="form-control" placeholder="e.g. 5000" min="0">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btn_save_approval_price">Submit & Approve</button>
+            </div>
         </div>
     </div>
 </div>
@@ -1123,7 +1243,6 @@ if ($isApproved === 2 || $isApproved === 3) {
             $('#stageUpdateModal').modal('show');
         });
 
-        if (canPerformActions && isAdmin) {
             // Handle segmented radio change for approval (values 0..3)
             $(document).on('change', 'input[name="approvalRadio"]', function(){
                 if (isApprovalUpdating) {
@@ -1144,19 +1263,19 @@ if ($isApproved === 2 || $isApproved === 3) {
                     return;
                 }
 
-                var stateLabel = (newStatus === 1) ? 'Approve' : 'Pending';
-                var confirmText = 'Are you sure you want to set this lead to "' + stateLabel + '"?';
-                var isHtmlText = false;
-
                 if (newStatus === 1) {
-                    confirmText = 'Are you sure you want to set this lead to "' + stateLabel + '"?<br><br><span class="approval-note-red">Note: After approve status you cannot change it again.</span>';
-                    isHtmlText = true;
+                    $('#modal_price_lead_id').val(leadId);
+                    $('#modal_price_status').val(newStatus);
+                    $('#modal_approval_price').val('');
+                    $('#approvalPriceModal').modal('show');
+                    return;
                 }
+
+                var confirmText = 'Are you sure you want to set this lead to "Pending"?';
 
                 swal({
                     title: 'Change Approval Status?',
                     text: confirmText,
-                    html: isHtmlText,
                     type: 'warning',
                     showCancelButton: true,
                     confirmButtonClass: 'btn-warning',
@@ -1214,6 +1333,74 @@ if ($isApproved === 2 || $isApproved === 3) {
                             setApprovalUI();
                         }, 10);
                     }
+                });
+            });
+
+            $('#approvalPriceModal').on('hidden.bs.modal', function () {
+                isApproved = parseInt(isApproved, 10) || 0;
+                setApprovalUI();
+            });
+
+            $('#btn_save_approval_price').on('click', function() {
+                var id = $('#modal_price_lead_id').val();
+                var status = $('#modal_price_status').val();
+                var price = $('#modal_approval_price').val();
+
+                if (!price || parseFloat(price) < 0) {
+                    swal("Error!", "Please enter a valid price.", "error");
+                    return;
+                }
+
+                swal({
+                    title: "Confirm Status Update?",
+                    text: "Are you sure you want to submit this price and approve the lead?\nNote: After approve status you cannot change it again.",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#667eea",
+                    confirmButtonText: "Yes, Proceed",
+                    cancelButtonText: "Cancel",
+                    closeOnConfirm: true
+                }, function(isConfirm) {
+                    if (!isConfirm) return;
+
+                    $('#modal_price_lead_id').val('');
+                    $('#approvalPriceModal').modal('hide');
+
+                    var loaderStart = Date.now();
+                    showAjaxLoader('Updating approval status, please wait...');
+
+                    $.ajax({
+                        url: "ajax_update.php",
+                        type: "POST",
+                        dataType: "json",
+                        data: {
+                            action: 'update_approval',
+                            lead_id: id,
+                            is_approved: status,
+                            price: price
+                        },
+                        success: function(response) {
+                            finishAfterMinLoader(loaderStart, function() {
+                                hideAjaxLoader();
+                                if (response.status === "success") {
+                                    swal("Success!", response.message, "success");
+                                    isApproved = parseInt(status, 10);
+                                    setApprovalUI();
+                                    setTimeout(function(){ window.location.reload(); }, 1500);
+                                } else {
+                                    swal("Error!", response.message || "Update failed", "error");
+                                    setApprovalUI();
+                                }
+                            });
+                        },
+                        error: function() {
+                            finishAfterMinLoader(loaderStart, function() {
+                                hideAjaxLoader();
+                                swal("Error!", "Server error occurred.", "error");
+                                setApprovalUI();
+                            });
+                        }
+                    });
                 });
             });
 
@@ -1301,9 +1488,7 @@ if ($isApproved === 2 || $isApproved === 3) {
                     });
                 });
             });
-        }
 
-        if (canPerformActions && isAdmin) {
         $('#toggleOpportunitySwitch').on('change', function(){
             var newStatus = $(this).is(':checked') ? 1 : 0;
 
@@ -1366,7 +1551,6 @@ if ($isApproved === 2 || $isApproved === 3) {
                 }
             });
         });
-        }
 
         $('#saveStageBtn').on('click', function(){
             var stageId = parseInt($('#stageSelectModal').val(), 10) || 0;

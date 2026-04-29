@@ -560,6 +560,126 @@ if($_POST['save_partner_csv']){
 
         </div>
 
+        <div id="approvalPriceModal" class="modal fade" role="dialog" style="backdrop-filter: blur(5px);">
+            <style>
+                #approvalPriceModal .modal-content {
+                    border: none !important;
+                    border-radius: 16px !important;
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+                    background: #ffffff !important;
+                    overflow: hidden !important;
+                    padding: 0 !important;
+                }
+                #approvalPriceModal .modal-header {
+                    padding: 0 !important;
+                    border: none !important;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                }
+                #approvalPriceModal .modal-title {
+                    font-family: 'Outfit', sans-serif;
+                    font-weight: 600;
+                    letter-spacing: 0.5px;
+                    font-size: 1.25rem;
+                }
+                #approvalPriceModal .close {
+                    background: transparent !important;
+                    color: white !important;
+                    border: none !important;
+                    position: relative !important;
+                    top: 0 !important;
+                    right: 0 !important;
+                    border-radius: 0 !important;
+                    padding: 0 !important;
+                    box-shadow: none !important;
+                    font-size: 28px !important;
+                    font-weight: 300 !important;
+                    opacity: 0.8 !important;
+                    cursor: pointer;
+                }
+                #approvalPriceModal .close:hover {
+                    opacity: 1 !important;
+                }
+                #approvalPriceModal .modal-body {
+                    padding: 30px 24px;
+                }
+                #approvalPriceModal .form-group label {
+                    font-family: 'Outfit', sans-serif;
+                    font-size: 0.95rem;
+                    color: #4a5568;
+                    margin-bottom: 8px;
+                }
+                #approvalPriceModal .form-control {
+                    border-radius: 10px;
+                    border: 2px solid #e2e8f0;
+                    padding: 12px 16px;
+                    height: auto;
+                    font-size: 0.95rem;
+                    transition: all 0.3s ease;
+                    color: #2d3748;
+                }
+                #approvalPriceModal .form-control:focus {
+                    border-color: #667eea;
+                    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+                }
+                #approvalPriceModal .modal-footer {
+                    border-top: 1px solid #edf2f7;
+                    padding: 16px 24px;
+                    background-color: #f8fafc;
+                }
+                #approvalPriceModal .btn {
+                    border-radius: 10px;
+                    padding: 10px 20px;
+                    font-weight: 600;
+                    font-family: 'Outfit', sans-serif;
+                    transition: all 0.3s ease;
+                }
+                #approvalPriceModal .btn-secondary {
+                    background-color: #edf2f7;
+                    color: #718096;
+                    border: none;
+                }
+                #approvalPriceModal .btn-secondary:hover {
+                    background-color: #e2e8f0;
+                    color: #4a5568;
+                }
+                #approvalPriceModal .btn-primary {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    border: none;
+                    color: #ffffff;
+                    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+                }
+                #approvalPriceModal .btn-primary:hover {
+                    transform: translateY(-1px);
+                    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.35);
+                }
+                #approvalPriceModal .btn-primary:active {
+                    transform: translateY(0);
+                }
+            </style>
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div class="w-100 d-flex align-items-center justify-content-between" style="padding: 20px 24px;">
+                            <h5 class="modal-title text-white m-0"><i class="fa fa-tag mr-2"></i> Pricing Required</h5>
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        </div>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="modal_price_lead_id">
+                        <input type="hidden" id="modal_price_status" value="1">
+                        <div class="form-group">
+                            <label class="font-weight-bold"><i class="fa fa-dollar-sign mr-1 text-primary"></i> Enter Price <span class="text-danger">*</span></label>
+                            <input type="number" id="modal_approval_price" class="form-control" placeholder="e.g. 5000" min="0">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="btn_save_approval_price">Submit & Approve</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div id="approvalReasonModal" class="modal fade" role="dialog" style="backdrop-filter: blur(5px);">
             <style>
                 #approvalReasonModal .modal-content {
@@ -1341,15 +1461,23 @@ $(document).on('change', '.approval-select', function() {
     var isApproveSelection = (status === '1' || status === 1);
     var isRejectOrOnhold = (status === '2' || status === 2 || status === '3' || status === 3);
 
-    if (isRejectOrOnhold) {
-        $('#modal_approval_lead_id').val(id);
-        $('#modal_approval_status').val(status);
-        $('#modal_reason_id').val('');
-        $('#modal_custom_reason').val('');
-        $('#modal_custom_reason_wrapper').hide();
-        $('#approvalReasonModal').modal('show');
-        return;
-    }
+                if (isRejectOrOnhold) {
+                    $('#modal_approval_lead_id').val(id);
+                    $('#modal_approval_status').val(status);
+                    $('#modal_reason_id').val('');
+                    $('#modal_custom_reason').val('');
+                    $('#modal_custom_reason_wrapper').hide();
+                    $('#approvalReasonModal').modal('show');
+                    return;
+                }
+
+                if (isApproveSelection) {
+                    $('#modal_price_lead_id').val(id);
+                    $('#modal_price_status').val(status);
+                    $('#modal_approval_price').val('');
+                    $('#approvalPriceModal').modal('show');
+                    return;
+                }
 
     var confirmText = "Do you want to change the approval status?";
     var isHtmlText = false;
@@ -1437,6 +1565,88 @@ $(document).on('change', '.approval-select', function() {
         });
     });
 });
+
+            $('#approvalPriceModal').on('hidden.bs.modal', function () {
+                var id = $('#modal_price_lead_id').val();
+                if (id) {
+                    var $sel = $('.approval-select[data-id="' + id + '"]');
+                    if ($sel.length) {
+                        $sel.val($sel.data('prev'));
+                    }
+                }
+            });
+
+            $('#btn_save_approval_price').on('click', function() {
+                var id = $('#modal_price_lead_id').val();
+                var status = $('#modal_price_status').val();
+                var price = $('#modal_approval_price').val();
+
+                if (!price || parseFloat(price) < 0) {
+                    swal("Error!", "Please enter a valid price.", "error");
+                    return;
+                }
+
+                swal({
+                    title: "Confirm Status Update?",
+                    text: "Are you sure you want to submit this price and approve the lead?\nNote: After approve status you cannot change it again.",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#667eea",
+                    confirmButtonText: "Yes, Proceed",
+                    cancelButtonText: "Cancel",
+                    closeOnConfirm: true
+                }, function(isConfirm) {
+                    if (!isConfirm) return;
+
+                    $('#modal_price_lead_id').val('');
+                    $('#approvalPriceModal').modal('hide');
+
+                    var loaderStart = Date.now();
+                    showAjaxLoader('Updating approval status, please wait...');
+
+                    $.ajax({
+                        url: "ajax_update.php",
+                        type: "POST",
+                        dataType: "json",
+                        data: {
+                            action: 'update_approval',
+                            lead_id: id,
+                            is_approved: status,
+                            price: price
+                        },
+                        success: function(response) {
+                            finishAfterMinLoader(loaderStart, function() {
+                                hideAjaxLoader();
+                                if (response.status === "success") {
+                                    swal("Success!", response.message, "success");
+                                    var $sel = $('.approval-select[data-id="' + id + '"]');
+                                    if ($sel.length) {
+                                        $sel.data('prev', status);
+                                    }
+                                } else {
+                                    swal("Error!", response.message || "Update failed", "error");
+                                    var $sel = $('.approval-select[data-id="' + id + '"]');
+                                    if ($sel.length) {
+                                        $sel.val($sel.data('prev'));
+                                    }
+                                }
+                                $('#leads').DataTable().ajax.reload(null, false);
+                            });
+                        },
+                        error: function() {
+                            finishAfterMinLoader(loaderStart, function() {
+                                hideAjaxLoader();
+                                swal("Error!", "Server error occurred.", "error");
+                                var $sel = $('.approval-select[data-id="' + id + '"]');
+                                if ($sel.length) {
+                                    $sel.val($sel.data('prev'));
+                                }
+                                $('#leads').DataTable().ajax.reload(null, false);
+                            });
+                        }
+                    });
+                });
+            });
 
             $('#approvalReasonModal').on('hidden.bs.modal', function () {
                 var leadId = $('#modal_approval_lead_id').val();

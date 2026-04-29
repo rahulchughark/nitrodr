@@ -263,7 +263,8 @@ if (!empty($_POST['id']) && !empty($_POST['file_name'])) {
     $custom_reason = isset($_POST['custom_reason']) ? mysqli_real_escape_string($GLOBALS['dbcon'], trim($_POST['custom_reason'])) : '';
 
     if ($is_approved === 1) {
-        $update_query = db_query("UPDATE orders SET is_approved='".$is_approved."', close_date = DATE_ADD(CURDATE(), INTERVAL 30 DAY) WHERE id='".$lead_id."'");
+        $price = isset($_POST['price']) ? (int)$_POST['price'] : 0;
+        $update_query = db_query("UPDATE orders SET is_approved='".$is_approved."', close_date = DATE_ADD(CURDATE(), INTERVAL 30 DAY), price='".$price."' WHERE id='".$lead_id."'");
     } elseif ($is_approved === 2 || $is_approved === 3) {
         $update_query = db_query("UPDATE orders SET is_approved='".$is_approved."', approval_reason_id='".$reason_id."', approval_reason_custom='".$custom_reason."' WHERE id='".$lead_id."'");
     } else {

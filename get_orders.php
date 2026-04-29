@@ -544,7 +544,12 @@ while($data = db_fetch_array($query)) {
 		if ($rowApprovalReasonText !== '') {
 			$eyeIconBadge = '<a href="javascript:void(0);" class="view-approval-reason mr-1 text-dark" data-reason="'.htmlspecialchars($rowApprovalReasonText, ENT_QUOTES, 'UTF-8').'" data-status-type="'.$statusLabel.'" title="View Reason"><i class="fa fa-eye"></i></a> ';
 		}
-		$nestedData['approval'] = '<span class="approval-badge '.$approvalData['class'].'">' . $eyeIconBadge . $approvalData['label'] . '</span>';
+		
+		$priceText = '';
+		if ($approvalState === 1 && !empty($data['price'])) {
+			$priceText = ' <span class="approved-price" style="font-weight:600; opacity:0.9; background:rgba(255,255,255,0.2); padding:2px 6px; border-radius:4px; margin-left:6px; font-size:0.85rem;">₹' . htmlspecialchars($data['price'], ENT_QUOTES, 'UTF-8') . '</span>';
+		}
+		$nestedData['approval'] = '<span class="approval-badge '.$approvalData['class'].'">' . $eyeIconBadge . $approvalData['label'] . $priceText . '</span>';
 	} elseif ($userType === 'ADMIN' || $userType === "OPERATIONS" || $userType === 'SUPERADMIN') {
 		$approvalOptions = [
 			['value' => 0, 'label' => 'Pending'],
@@ -560,7 +565,13 @@ while($data = db_fetch_array($query)) {
 			$select .= '<option value="'.$opt['value'].'" '.$selected.'>'.$opt['label'].'</option>';
 		}
 		$select .= '</select>';
-		$nestedData['approval'] = $eyeIconHtml . $select;
+		
+		$priceText = '';
+		if ((int)$data['is_approved'] === 1 && !empty($data['price'])) {
+			$priceText = ' <span class="approved-price text-success" style="font-weight:600; font-size:0.9rem; margin-left:6px; display:inline-block; vertical-align:middle;">₹' . htmlspecialchars($data['price'], ENT_QUOTES, 'UTF-8') . '</span>';
+		}
+		
+		$nestedData['approval'] = $eyeIconHtml . $select . $priceText;
 	} else {
 		$approvalState = (int)$data['is_approved'];
 		$approvalMap = [
@@ -574,7 +585,13 @@ while($data = db_fetch_array($query)) {
 		if ($rowApprovalReasonText !== '') {
 			$eyeIconBadge = '<a href="javascript:void(0);" class="view-approval-reason mr-1 text-dark" data-reason="'.htmlspecialchars($rowApprovalReasonText, ENT_QUOTES, 'UTF-8').'" data-status-type="'.$statusLabel.'" title="View Reason"><i class="fa fa-eye"></i></a> ';
 		}
-		$nestedData['approval'] = '<span class="approval-badge '.$approvalData['class'].'">' . $eyeIconBadge . $approvalData['label'] . '</span>';
+		
+		$priceText = '';
+		if ($approvalState === 1 && !empty($data['price'])) {
+			$priceText = ' <span class="approved-price" style="font-weight:600; opacity:0.9; background:rgba(255,255,255,0.2); padding:2px 6px; border-radius:4px; margin-left:6px; font-size:0.85rem;">₹' . htmlspecialchars($data['price'], ENT_QUOTES, 'UTF-8') . '</span>';
+		}
+		
+		$nestedData['approval'] = '<span class="approval-badge '.$approvalData['class'].'">' . $eyeIconBadge . $approvalData['label'] . $priceText . '</span>';
 	}  
 	// else if ($userType === 'USR' || $userType === 'MNGR') {
 	// 	$nestedData['approval'] = $data['is_approved'];

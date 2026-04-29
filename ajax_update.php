@@ -259,8 +259,13 @@ if (!empty($_POST['id']) && !empty($_POST['file_name'])) {
         exit;
     }
 
+    $reason_id = isset($_POST['reason_id']) ? (int)$_POST['reason_id'] : 0;
+    $custom_reason = isset($_POST['custom_reason']) ? mysqli_real_escape_string($GLOBALS['dbcon'], trim($_POST['custom_reason'])) : '';
+
     if ($is_approved === 1) {
         $update_query = db_query("UPDATE orders SET is_approved='".$is_approved."', close_date = DATE_ADD(CURDATE(), INTERVAL 30 DAY) WHERE id='".$lead_id."'");
+    } elseif ($is_approved === 2 || $is_approved === 3) {
+        $update_query = db_query("UPDATE orders SET is_approved='".$is_approved."', approval_reason_id='".$reason_id."', approval_reason_custom='".$custom_reason."' WHERE id='".$lead_id."'");
     } else {
         $update_query = db_query("UPDATE orders SET is_approved='".$is_approved."' WHERE id='".$lead_id."'");
     }
@@ -465,6 +470,40 @@ if (!empty($_POST['id']) && !empty($_POST['file_name'])) {
             "message" => "Failed to update opportunity status"
         ]);
     }
+} elseif(isset($_POST['action']) && $_POST['action'] == 'update_approval_reason' && isset($_POST['lead_id']) && isset($_POST['reason_id'])){
+    $lead_id = intval($_POST['lead_id']);
+    $reason_id = intval($_POST['reason_id']);
+
+    if($lead_id <= 0) {
+        echo json_encode(["status" => "error", "message" => "Invalid lead ID"]);
+        exit;
+    }
+
+    $update_query = db_query("UPDATE orders SET approval_reason_id='".$reason_id."' WHERE id='".$lead_id."'");
+
+    if($update_query) {
+        echo json_encode(["status" => "success", "message" => "Reason updated successfully"]);
+    } else {
+        echo json_encode(["status" => "error", "message" => "Failed to update reason"]);
+    }
+    exit;
+} elseif(isset($_POST['action']) && $_POST['action'] == 'update_approval_reason_custom' && isset($_POST['lead_id']) && isset($_POST['custom_reason'])){
+    $lead_id = intval($_POST['lead_id']);
+    $custom_reason = mysqli_real_escape_string($GLOBALS['dbcon'], trim($_POST['custom_reason']));
+
+    if($lead_id <= 0) {
+        echo json_encode(["status" => "error", "message" => "Invalid lead ID"]);
+        exit;
+    }
+
+    $update_query = db_query("UPDATE orders SET approval_reason_custom='".$custom_reason."' WHERE id='".$lead_id."'");
+
+    if($update_query) {
+        echo json_encode(["status" => "success", "message" => "Custom reason updated successfully"]);
+    } else {
+        echo json_encode(["status" => "error", "message" => "Failed to update custom reason"]);
+    }
+    exit;
 }
 
 ?>

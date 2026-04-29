@@ -168,6 +168,18 @@ $callLogsQuery = db_query("SELECT al.id, al.call_subject, al.description, al.cre
 while ($callLogRow = db_fetch_array($callLogsQuery)) {
     $callLogs[] = $callLogRow;
 }
+
+$approvalReasonText = '';
+if ($isApproved === 2 || $isApproved === 3) {
+    $reasonId = (int)($row['approval_reason_id'] ?? 0);
+    if ($reasonId > 0) {
+        $approvalReasonText = master_name_by_id('tbl_approval_reasons', $reasonId, ['reason']);
+    }
+    $customReason = trim((string)($row['approval_reason_custom'] ?? ''));
+    if (strtolower(trim($approvalReasonText)) === 'other' && $customReason !== '') {
+        $approvalReasonText = $customReason;
+    }
+}
 ?>
 <style>
     .lead-view-card .card-subtitle { margin: 0; padding: 8px 10px; background: #f4f6f9; font-size: 13px; color: #1B274D; }
@@ -548,6 +560,23 @@ while ($callLogRow = db_fetch_array($callLogsQuery)) {
 
                     <?php if ($currentRoleType === 'ADMIN') { ?>
                     <h5 class="card-subtitle mt-3">Lead Actions</h5>
+                    <?php if ($approvalReasonText !== '') {
+                        $alertClass = ($isApproved === 2) ? 'alert-danger' : 'alert-warning';
+                        $iconClass = ($isApproved === 2) ? 'fa-exclamation-circle' : 'fa-pause-circle';
+                        $bgColor = ($isApproved === 2) ? '#fff5f5' : '#fffaf0';
+                        $textColor = ($isApproved === 2) ? '#e53e3e' : '#dd6b20';
+                        $shadowColor = ($isApproved === 2) ? 'rgba(229, 62, 62, 0.08)' : 'rgba(221, 107, 32, 0.08)';
+                    ?>
+                    <div class="alert <?= $alertClass ?> mt-2 mb-3" role="alert" style="border-radius: 10px; border: none; background: <?= $bgColor ?>; color: <?= $textColor ?>; box-shadow: 0 4px 12px <?= $shadowColor ?>; padding: 16px 20px;">
+                        <div class="d-flex align-items-center">
+                            <i class="fa <?= $iconClass ?> fa-lg mr-3 text-danger"></i>
+                            <div>
+                                <strong style="font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 0.95rem;"><?= ($isApproved === 2) ? 'Rejection Reason' : 'Onhold Reason' ?>:</strong>
+                                <div class="mt-1" style="font-family: 'Outfit', sans-serif; font-weight: 400; font-size: 0.95rem; line-height: 1.4;"><?= htmlspecialchars($approvalReasonText, ENT_QUOTES, 'UTF-8') ?></div>
+                            </div>
+                        </div>
+                    </div>
+                    <?php } ?>
                     <div class="row mt-2">
                         
                         <div class="col-md-6">
@@ -570,7 +599,6 @@ while ($callLogRow = db_fetch_array($callLogsQuery)) {
                                             </label>
                                         </div>
                                     </div>
-                                    <!-- approvalActionBadge hidden for ADMIN users -->
                                 </div>
                             </div>
                         </div>
@@ -590,6 +618,23 @@ while ($callLogRow = db_fetch_array($callLogsQuery)) {
                     </div>
                     <?php } else { ?>
                     <h5 class="card-subtitle mt-3">Lead Actions</h5>
+                    <?php if ($approvalReasonText !== '') {
+                        $alertClass = ($isApproved === 2) ? 'alert-danger' : 'alert-warning';
+                        $iconClass = ($isApproved === 2) ? 'fa-exclamation-circle' : 'fa-pause-circle';
+                        $bgColor = ($isApproved === 2) ? '#fff5f5' : '#fffaf0';
+                        $textColor = ($isApproved === 2) ? '#e53e3e' : '#dd6b20';
+                        $shadowColor = ($isApproved === 2) ? 'rgba(229, 62, 62, 0.08)' : 'rgba(221, 107, 32, 0.08)';
+                    ?>
+                    <div class="alert <?= $alertClass ?> mt-2 mb-3" role="alert" style="border-radius: 10px; border: none; background: <?= $bgColor ?>; color: <?= $textColor ?>; box-shadow: 0 4px 12px <?= $shadowColor ?>; padding: 16px 20px;">
+                        <div class="d-flex align-items-center">
+                            <i class="fa <?= $iconClass ?> fa-lg mr-3"></i>
+                            <div>
+                                <strong style="font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 0.95rem;"><?= ($isApproved === 2) ? 'Rejection Reason' : 'Onhold Reason' ?>:</strong>
+                                <div class="mt-1" style="font-family: 'Outfit', sans-serif; font-weight: 400; font-size: 0.95rem; line-height: 1.4;"><?= htmlspecialchars($approvalReasonText, ENT_QUOTES, 'UTF-8') ?></div>
+                            </div>
+                        </div>
+                    </div>
+                    <?php } ?>
                     <div class="row mt-2">
                         <div class="col-md-6">
                             <div class="view-row"><div class="view-label">Approval</div><div class="view-value"><?php
@@ -728,6 +773,146 @@ while ($callLogRow = db_fetch_array($callLogsQuery)) {
                     <button type="submit" name="submit_call_log" value="1" id="callLogSubmitBtn" class="btn btn-primary">Submit</button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<div id="approvalReasonModal" class="modal fade" role="dialog" style="backdrop-filter: blur(5px);">
+    <style>
+        #approvalReasonModal .modal-content {
+            border: none !important;
+            border-radius: 16px !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+            background: #ffffff !important;
+            overflow: hidden !important;
+            padding: 0 !important;
+        }
+        #approvalReasonModal .modal-header {
+            padding: 0 !important;
+            border: none !important;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        #approvalReasonModal .modal-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            font-size: 1.25rem;
+        }
+        #approvalReasonModal .close {
+            background: transparent !important;
+            color: white !important;
+            border: none !important;
+            position: relative !important;
+            top: 0 !important;
+            right: 0 !important;
+            border-radius: 0 !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            font-size: 28px !important;
+            font-weight: 300 !important;
+            opacity: 0.8 !important;
+            cursor: pointer;
+        }
+        #approvalReasonModal .close:hover {
+            opacity: 1 !important;
+        }
+        #approvalReasonModal .modal-body {
+            padding: 30px 24px;
+        }
+        #approvalReasonModal .form-group label {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.95rem;
+            color: #4a5568;
+            margin-bottom: 8px;
+        }
+        #approvalReasonModal .form-control {
+            border-radius: 10px;
+            border: 2px solid #e2e8f0;
+            padding: 12px 16px;
+            height: auto;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            color: #2d3748;
+        }
+        #approvalReasonModal .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        #approvalReasonModal .modal-footer {
+            border-top: 1px solid #edf2f7;
+            padding: 16px 24px;
+            background-color: #f8fafc;
+        }
+        #approvalReasonModal .btn {
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: 600;
+            font-family: 'Outfit', sans-serif;
+            transition: all 0.3s ease;
+        }
+        #approvalReasonModal .btn-secondary {
+            background-color: #edf2f7;
+            color: #718096;
+            border: none;
+        }
+        #approvalReasonModal .btn-secondary:hover {
+            background-color: #e2e8f0;
+            color: #4a5568;
+        }
+        #approvalReasonModal .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: #ffffff;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+        }
+        #approvalReasonModal .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.35);
+        }
+        #approvalReasonModal .btn-primary:active {
+            transform: translateY(0);
+        }
+        #modal_custom_reason_wrapper {
+            animation: slideDown 0.3s ease-out forwards;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="w-100 d-flex align-items-center justify-content-between" style="padding: 20px 24px;">
+                    <h5 class="modal-title text-white m-0"><i class="fa fa-exclamation-circle mr-2"></i> Status Update Required</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="modal_approval_lead_id">
+                <input type="hidden" id="modal_approval_status">
+                <div class="form-group">
+                    <label class="font-weight-bold"><i class="fa fa-list-ul mr-1 text-primary"></i> Select Reason <span class="text-danger">*</span></label>
+                    <select id="modal_reason_id" class="form-control">
+                        <option value="">---Select Reason---</option>
+                        <?php
+                        $reasonsRes = db_query("SELECT id, reason FROM tbl_approval_reasons WHERE status=1");
+                        while ($reasonsRes && ($rRow = db_fetch_array($reasonsRes))) {
+                            $isOther = (strtolower(trim($rRow['reason'])) === 'other') ? '1' : '0';
+                            echo '<option value="'.$rRow['id'].'" data-is-other="'.$isOther.'">'.htmlspecialchars($rRow['reason']).'</option>';
+                        }
+                        ?>
+                    </select>
+                </div>
+                <div class="form-group mt-3" id="modal_custom_reason_wrapper" style="display:none;">
+                    <label class="font-weight-bold"><i class="fa fa-pencil-alt mr-1 text-primary"></i> Enter Custom Reason <span class="text-danger">*</span></label>
+                    <textarea id="modal_custom_reason" class="form-control" rows="3" placeholder="Type specific custom reasons here..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btn_save_approval_reason">Confirm Update</button>
+            </div>
         </div>
     </div>
 </div>
@@ -948,7 +1133,18 @@ while ($callLogRow = db_fetch_array($callLogsQuery)) {
                 var $input = $(this);
                 var newStatus = parseInt($input.val(), 10);
                 var previousState = parseInt(isApproved, 10) || 0;
-                var stateLabel = (newStatus === 1) ? 'Approve' : (newStatus === 2) ? 'Reject' : (newStatus === 3) ? 'Onhold' : 'Pending';
+
+                if (newStatus === 2 || newStatus === 3) {
+                    $('#modal_approval_lead_id').val(leadId);
+                    $('#modal_approval_status').val(newStatus);
+                    $('#modal_reason_id').val('');
+                    $('#modal_custom_reason').val('');
+                    $('#modal_custom_reason_wrapper').hide();
+                    $('#approvalReasonModal').modal('show');
+                    return;
+                }
+
+                var stateLabel = (newStatus === 1) ? 'Approve' : 'Pending';
                 var confirmText = 'Are you sure you want to set this lead to "' + stateLabel + '"?';
                 var isHtmlText = false;
 
@@ -1018,6 +1214,91 @@ while ($callLogRow = db_fetch_array($callLogsQuery)) {
                             setApprovalUI();
                         }, 10);
                     }
+                });
+            });
+
+            $('#approvalReasonModal').on('hidden.bs.modal', function () {
+                isApproved = parseInt(isApproved, 10) || 0;
+                setApprovalUI();
+            });
+
+            $('#modal_reason_id').on('change', function() {
+                var isOther = $(this).find('option:selected').data('is-other');
+                if (isOther == '1') {
+                    $('#modal_custom_reason_wrapper').show();
+                } else {
+                    $('#modal_custom_reason_wrapper').hide();
+                }
+            });
+
+            $('#btn_save_approval_reason').on('click', function() {
+                var id = $('#modal_approval_lead_id').val();
+                var status = $('#modal_approval_status').val();
+                var reasonId = $('#modal_reason_id').val();
+                var isOther = $('#modal_reason_id option:selected').data('is-other');
+                var customReason = $('#modal_custom_reason').val();
+
+                if (!reasonId) {
+                    swal("Error!", "Please select a reason.", "error");
+                    return;
+                }
+
+                if (isOther == '1' && !customReason.trim()) {
+                    swal("Error!", "Please enter a custom reason.", "error");
+                    return;
+                }
+
+                swal({
+                    title: "Confirm Status Update?",
+                    text: "Are you sure you want to submit this reason and update the approval status?",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#667eea",
+                    confirmButtonText: "Yes, Proceed",
+                    cancelButtonText: "Cancel",
+                    closeOnConfirm: true
+                }, function(isConfirm) {
+                    if (!isConfirm) return;
+
+                    $('#modal_approval_lead_id').val('');
+                    $('#approvalReasonModal').modal('hide');
+
+                    var loaderStart = Date.now();
+                    showAjaxLoader('Updating approval status, please wait...');
+
+                    $.ajax({
+                        url: "ajax_update.php",
+                        type: "POST",
+                        dataType: "json",
+                        data: {
+                            action: 'update_approval',
+                            lead_id: id,
+                            is_approved: status,
+                            reason_id: reasonId,
+                            custom_reason: customReason
+                        },
+                        success: function(response) {
+                            finishAfterMinLoader(loaderStart, function() {
+                                hideAjaxLoader();
+                                if (response.status === "success") {
+                                    swal("Success!", response.message, "success");
+                                    isApproved = parseInt(status, 10);
+                                    setApprovalUI();
+                                    setTimeout(function(){ window.location.reload(); }, 1500);
+                                } else {
+                                    swal("Error!", response.message || "Update failed", "error");
+                                    setApprovalUI();
+                                }
+                            });
+                        },
+                        error: function() {
+                            finishAfterMinLoader(loaderStart, function() {
+                                hideAjaxLoader();
+                                swal("Error!", "Server error occurred.", "error");
+                                setApprovalUI();
+                            });
+                        }
+                    });
                 });
             });
         }

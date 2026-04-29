@@ -288,13 +288,15 @@ if($_POST['save_partner_csv']){
         transform: translateX(20px);
     }
     /* Approval select styles: white select with a colored left indicator */
-    .approval-wrapper { display: inline-block; position: relative; vertical-align: middle; }
-    .approval-wrapper .approval-indicator { position: absolute; left: 0; top: 0; bottom: 0; width: 8px; border-radius: 6px 0 0 6px; }
-    .approval-select { width: 140px; padding: 6px 12px 6px 18px; font-size: 13px; border-radius: 6px; border: 1px solid #ced4da; background: #fff; color: #212529; appearance: none; -webkit-appearance: none; -moz-appearance: none; }
-    .approval-wrapper.pending .approval-indicator { background: #f0ad4e; }
-    .approval-wrapper.approved .approval-indicator { background: #28a745; }
-    .approval-wrapper.rejected .approval-indicator { background: #dc3545; }
-    .approval-wrapper.onboard .approval-indicator { background: #007bff; }
+    .approval-wrapper { display: inline-block; position: relative; vertical-align: middle; overflow: hidden; border-radius: 6px; }
+    .approval-wrapper .approval-indicator { position: absolute; left: 0; top: 0; bottom: 0; width: 24px; border-radius: 6px 0 0 6px; pointer-events: none; }
+    .approval-select { width: 140px; padding: 6px 12px 6px 30px; font-size: 13px; border-radius: 6px; border: 1px solid #ced4da; background: #fff; color: #212529; appearance: none; -webkit-appearance: none; -moz-appearance: none; }
+    .approval-wrapper.pending .approval-indicator { background: linear-gradient(135deg, #ffb347 0%, #f0ad4e 100%); }
+    .approval-wrapper.approved .approval-indicator { background: linear-gradient(135deg, #5cb85c 0%, #28a745 100%); }
+    .approval-wrapper.rejected .approval-indicator { background: linear-gradient(135deg, #d9534f 0%, #dc3545 100%); }
+    .approval-wrapper.onboard .approval-indicator { background: linear-gradient(135deg, #0275d8 0%, #007bff 100%); }
+    .approval-wrapper .view-approval-reason { position: absolute; left: 0; top: 0; bottom: 0; width: 24px; display: flex; align-items: center; justify-content: center; z-index: 10; color: rgba(255, 255, 255, 0.95) !important; font-size: 13px; cursor: pointer; pointer-events: auto; transition: all 0.25s ease; }
+    .approval-wrapper .view-approval-reason:hover { color: #ffffff !important; transform: scale(1.25); text-shadow: 0 0 8px rgba(255,255,255,0.8); }
     .approval-badge {
         display: inline-block;
         padding: 4px 10px;
@@ -558,6 +560,146 @@ if($_POST['save_partner_csv']){
 
         </div>
 
+        <div id="approvalReasonModal" class="modal fade" role="dialog" style="backdrop-filter: blur(5px);">
+            <style>
+                #approvalReasonModal .modal-content {
+                    border: none !important;
+                    border-radius: 16px !important;
+                    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+                    background: #ffffff !important;
+                    overflow: hidden !important;
+                    padding: 0 !important;
+                }
+                #approvalReasonModal .modal-header {
+                    padding: 0 !important;
+                    border: none !important;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                }
+                #approvalReasonModal .modal-title {
+                    font-family: 'Outfit', sans-serif;
+                    font-weight: 600;
+                    letter-spacing: 0.5px;
+                    font-size: 1.25rem;
+                }
+                #approvalReasonModal .close {
+                    background: transparent !important;
+                    color: white !important;
+                    border: none !important;
+                    position: relative !important;
+                    top: 0 !important;
+                    right: 0 !important;
+                    border-radius: 0 !important;
+                    padding: 0 !important;
+                    box-shadow: none !important;
+                    font-size: 28px !important;
+                    font-weight: 300 !important;
+                    opacity: 0.8 !important;
+                    cursor: pointer;
+                }
+                #approvalReasonModal .close:hover {
+                    opacity: 1 !important;
+                }
+                #approvalReasonModal .modal-body {
+                    padding: 30px 24px;
+                }
+                #approvalReasonModal .form-group label {
+                    font-family: 'Outfit', sans-serif;
+                    font-size: 0.95rem;
+                    color: #4a5568;
+                    margin-bottom: 8px;
+                }
+                #approvalReasonModal .form-control {
+                    border-radius: 10px;
+                    border: 2px solid #e2e8f0;
+                    padding: 12px 16px;
+                    height: auto;
+                    font-size: 0.95rem;
+                    transition: all 0.3s ease;
+                    color: #2d3748;
+                }
+                #approvalReasonModal .form-control:focus {
+                    border-color: #667eea;
+                    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+                }
+                #approvalReasonModal .modal-footer {
+                    border-top: 1px solid #edf2f7;
+                    padding: 16px 24px;
+                    background-color: #f8fafc;
+                }
+                #approvalReasonModal .btn {
+                    border-radius: 10px;
+                    padding: 10px 20px;
+                    font-weight: 600;
+                    font-family: 'Outfit', sans-serif;
+                    transition: all 0.3s ease;
+                }
+                #approvalReasonModal .btn-secondary {
+                    background-color: #edf2f7;
+                    color: #718096;
+                    border: none;
+                }
+                #approvalReasonModal .btn-secondary:hover {
+                    background-color: #e2e8f0;
+                    color: #4a5568;
+                }
+                #approvalReasonModal .btn-primary {
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    border: none;
+                    color: #ffffff;
+                    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+                }
+                #approvalReasonModal .btn-primary:hover {
+                    transform: translateY(-1px);
+                    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.35);
+                }
+                #approvalReasonModal .btn-primary:active {
+                    transform: translateY(0);
+                }
+                #modal_custom_reason_wrapper {
+                    animation: slideDown 0.3s ease-out forwards;
+                }
+                @keyframes slideDown {
+                    from { opacity: 0; transform: translateY(-10px); }
+                    to { opacity: 1; transform: translateY(0); }
+                }
+            </style>
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div class="w-100 d-flex align-items-center justify-content-between" style="padding: 20px 24px;">
+                            <h5 class="modal-title text-white m-0"><i class="fa fa-exclamation-circle mr-2"></i> Status Update Required</h5>
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        </div>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="modal_approval_lead_id">
+                        <input type="hidden" id="modal_approval_status">
+                        <div class="form-group">
+                            <label class="font-weight-bold"><i class="fa fa-list-ul mr-1 text-primary"></i> Select Reason <span class="text-danger">*</span></label>
+                            <select id="modal_reason_id" class="form-control">
+                                <option value="">---Select Reason---</option>
+                                <?php
+                                $reasonsRes = db_query("SELECT id, reason FROM tbl_approval_reasons WHERE status=1");
+                                while ($reasonsRes && ($rRow = db_fetch_array($reasonsRes))) {
+                                    $isOther = (strtolower(trim($rRow['reason'])) === 'other') ? '1' : '0';
+                                    echo '<option value="'.$rRow['id'].'" data-is-other="'.$isOther.'">'.htmlspecialchars($rRow['reason']).'</option>';
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="form-group mt-3" id="modal_custom_reason_wrapper" style="display:none;">
+                            <label class="font-weight-bold"><i class="fa fa-pencil-alt mr-1 text-primary"></i> Enter Custom Reason <span class="text-danger">*</span></label>
+                            <textarea id="modal_custom_reason" class="form-control" rows="3" placeholder="Type specific custom reasons here..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="btn_save_approval_reason">Confirm Update</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <?php include('includes/footer.php') ?>
 
         <script>
@@ -639,6 +781,65 @@ if($_POST['save_partner_csv']){
                             { data: 'created_at', className: 'text-nowrap' },
                             { data: 'action', className: 'text-nowrap' }
                         ]
+            });
+
+            $(document).on('change', '.reason-select', function() {
+                var $sel = $(this);
+                var id = $sel.data('id');
+                var reasonId = $sel.val();
+                var $cell = $sel.closest('.reason-cell-container');
+                var otherId = $cell.data('other-id');
+                var $textarea = $cell.find('.custom-reason-textarea');
+
+                if (reasonId == otherId) {
+                    $textarea.show().focus();
+                } else {
+                    $textarea.hide();
+                }
+
+                $.ajax({
+                    url: "ajax_update.php",
+                    type: "POST",
+                    dataType: "json",
+                    data: {
+                        action: 'update_approval_reason',
+                        lead_id: id,
+                        reason_id: reasonId
+                    },
+                    success: function(response) {
+                        if (response.status !== "success") {
+                            swal("Error!", response.message || "Update failed", "error");
+                        }
+                    },
+                    error: function() {
+                        swal("Error!", "Server error occurred.", "error");
+                    }
+                });
+            });
+
+            $(document).on('blur', '.custom-reason-textarea', function() {
+                var $textarea = $(this);
+                var id = $textarea.data('id');
+                var customReason = $textarea.val();
+
+                $.ajax({
+                    url: "ajax_update.php",
+                    type: "POST",
+                    dataType: "json",
+                    data: {
+                        action: 'update_approval_reason_custom',
+                        lead_id: id,
+                        custom_reason: customReason
+                    },
+                    success: function(response) {
+                        if (response.status !== "success") {
+                            swal("Error!", response.message || "Update failed", "error");
+                        }
+                    },
+                    error: function() {
+                        swal("Error!", "Server error occurred.", "error");
+                    }
+                });
             });
 
 
@@ -1138,6 +1339,18 @@ $(document).on('change', '.approval-select', function() {
     var status = $sel.val();
     var previousState = $sel.data('prev');
     var isApproveSelection = (status === '1' || status === 1);
+    var isRejectOrOnhold = (status === '2' || status === 2 || status === '3' || status === 3);
+
+    if (isRejectOrOnhold) {
+        $('#modal_approval_lead_id').val(id);
+        $('#modal_approval_status').val(status);
+        $('#modal_reason_id').val('');
+        $('#modal_custom_reason').val('');
+        $('#modal_custom_reason_wrapper').hide();
+        $('#approvalReasonModal').modal('show');
+        return;
+    }
+
     var confirmText = "Do you want to change the approval status?";
     var isHtmlText = false;
     if (isApproveSelection) {
@@ -1174,6 +1387,12 @@ $(document).on('change', '.approval-select', function() {
         if (!isConfirm) {
             $sel.val(previousState);
             applyStyle($sel, previousState);
+            var wasRejectOrOnhold = (previousState === '2' || previousState === 2 || previousState === '3' || previousState === 3);
+            if (wasRejectOrOnhold) {
+                $reasonContainer.show();
+            } else {
+                $reasonContainer.hide();
+            }
             return;
         }
 
@@ -1219,6 +1438,118 @@ $(document).on('change', '.approval-select', function() {
     });
 });
 
+            $('#approvalReasonModal').on('hidden.bs.modal', function () {
+                var leadId = $('#modal_approval_lead_id').val();
+                if (leadId) {
+                    var $sel = $('.approval-select[data-id="' + leadId + '"]');
+                    if ($sel.length) {
+                        var previousState = $sel.data('prev');
+                        $sel.val(previousState);
+                    }
+                }
+            });
+
+            $('#modal_reason_id').on('change', function() {
+                var isOther = $(this).find('option:selected').data('is-other');
+                if (isOther == '1') {
+                    $('#modal_custom_reason_wrapper').show();
+                } else {
+                    $('#modal_custom_reason_wrapper').hide();
+                }
+            });
+
+            $('#btn_save_approval_reason').on('click', function() {
+                var id = $('#modal_approval_lead_id').val();
+                var status = $('#modal_approval_status').val();
+                var reasonId = $('#modal_reason_id').val();
+                var isOther = $('#modal_reason_id option:selected').data('is-other');
+                var customReason = $('#modal_custom_reason').val();
+
+                if (!reasonId) {
+                    swal("Error!", "Please select a reason.", "error");
+                    return;
+                }
+
+                if (isOther == '1' && !customReason.trim()) {
+                    swal("Error!", "Please enter a custom reason.", "error");
+                    return;
+                }
+
+                swal({
+                    title: "Confirm Status Update?",
+                    text: "Are you sure you want to submit this reason and update the approval status?",
+                    type: "warning",
+                    showCancelButton: true,
+                    confirmButtonColor: "#667eea",
+                    confirmButtonText: "Yes, Proceed",
+                    cancelButtonText: "Cancel",
+                    closeOnConfirm: true
+                }, function(isConfirm) {
+                    if (!isConfirm) return;
+
+                    $('#modal_approval_lead_id').val('');
+                    $('#approvalReasonModal').modal('hide');
+
+                    var loaderStart = Date.now();
+                    showAjaxLoader('Updating approval status, please wait...');
+
+                    $.ajax({
+                        url: "ajax_update.php",
+                        type: "POST",
+                        dataType: "json",
+                        data: {
+                            action: 'update_approval',
+                            lead_id: id,
+                            is_approved: status,
+                            reason_id: reasonId,
+                            custom_reason: customReason
+                        },
+                        success: function(response) {
+                            finishAfterMinLoader(loaderStart, function() {
+                                hideAjaxLoader();
+                                if (response.status === "success") {
+                                    swal("Success!", response.message, "success");
+                                    var $sel = $('.approval-select[data-id="' + id + '"]');
+                                    if ($sel.length) {
+                                        $sel.data('prev', status);
+                                    }
+                                } else {
+                                    swal("Error!", response.message || "Update failed", "error");
+                                    var $sel = $('.approval-select[data-id="' + id + '"]');
+                                    if ($sel.length) {
+                                        $sel.val($sel.data('prev'));
+                                    }
+                                }
+                                $('#leads').DataTable().ajax.reload(null, false);
+                            });
+                        },
+                        error: function() {
+                            finishAfterMinLoader(loaderStart, function() {
+                                hideAjaxLoader();
+                                swal("Error!", "Server error occurred.", "error");
+                                var $sel = $('.approval-select[data-id="' + id + '"]');
+                                if ($sel.length) {
+                                    $sel.val($sel.data('prev'));
+                                }
+                            });
+                        }
+                    });
+                });
+            });
+
+            $(document).on('click', '.view-approval-reason', function(e) {
+                e.preventDefault();
+                var reason = $(this).data('reason');
+                var statusType = $(this).data('status-type');
+                
+                swal({
+                    title: statusType + " Reason",
+                    text: reason,
+                    type: "info",
+                    confirmButtonColor: "#667eea"
+                });
+            });
+
 // Keep track of previous value when user focuses the select
 $(document).on('focusin', '.approval-select', function() {
     var $s = $(this);
@@ -1233,8 +1564,13 @@ $(document).on('focusin', '.approval-select', function() {
             $s.addClass('form-control form-control-sm');
             // wrap with indicator if not already
             if ($s.closest('.approval-wrapper').length === 0) {
+                var $eye = $s.prev('.view-approval-reason');
                 $s.wrap('<span class="approval-wrapper"></span>');
-                $s.closest('.approval-wrapper').prepend('<i class="approval-indicator"></i>');
+                var $wrap = $s.closest('.approval-wrapper');
+                $wrap.prepend('<i class="approval-indicator"></i>');
+                if ($eye.length) {
+                    $wrap.prepend($eye);
+                }
             }
             // set prev data attribute
             $s.data('prev', $s.val());

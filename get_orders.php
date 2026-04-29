@@ -396,6 +396,48 @@ $sql .= " ORDER BY o.id ".$columnSortOrder."
 
 $query = db_query($sql);
 
+$reasonsArray = [];
+$otherReasonId = 0;
+db_query("CREATE TABLE IF NOT EXISTS tbl_approval_reasons (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    reason VARCHAR(255) NOT NULL,
+    status INT DEFAULT 1
+)");
+
+$checkEmpty = db_query("SELECT COUNT(*) as cnt FROM tbl_approval_reasons");
+$cntRow = $checkEmpty ? db_fetch_array($checkEmpty) : ['cnt' => 0];
+if ($cntRow['cnt'] == 0) {
+    $dummyReasons = [
+        "Incorrect Pricing",
+        "Client Unreachable",
+        "Insufficient Documentation",
+        "Budget Constraints",
+        "Competitor Selected",
+        "Other"
+    ];
+    foreach ($dummyReasons as $reason) {
+        $safeReason = mysqli_real_escape_string($GLOBALS['dbcon'], $reason);
+        db_query("INSERT INTO tbl_approval_reasons (reason) VALUES ('$safeReason')");
+    }
+}
+
+$checkCol1 = getSingleresult("SHOW COLUMNS FROM orders LIKE 'approval_reason_id'");
+if (empty($checkCol1)) {
+    db_query("ALTER TABLE orders ADD COLUMN approval_reason_id INT DEFAULT 0");
+}
+$checkCol2 = getSingleresult("SHOW COLUMNS FROM orders LIKE 'approval_reason_custom'");
+if (empty($checkCol2)) {
+    db_query("ALTER TABLE orders ADD COLUMN approval_reason_custom TEXT");
+}
+
+$reasonsRes = db_query("SELECT id, reason FROM tbl_approval_reasons WHERE status=1");
+while ($reasonsRes && ($rRow = db_fetch_array($reasonsRes))) {
+    $reasonsArray[] = $rRow;
+    if (strtolower(trim($rRow['reason'])) === 'other') {
+        $otherReasonId = (int)$rRow['id'];
+    }
+}
+
 $results = array();
 $i = $requestData['start'] + 1;
 
@@ -417,6 +459,20 @@ while($data = db_fetch_array($query)) {
 	$nestedData['proof_engagement_id'] = $data['proof_engagement_name'] ? $data['proof_engagement_name'] : '';
 	$nestedData['created_by_name'] = $data['created_by_name'] ? $data['created_by_name'] : '-';
 	$nestedData['partner_name'] = $data['partner_name'] ? $data['partner_name'] : '-';
+
+	$reasonSelect = '<select class="reason-select form-control form-control-sm" data-id="'.$data['id'].'">';
+	$reasonSelect .= '<option value="">---Select Reason---</option>';
+	foreach ($reasonsArray as $rOpt) {
+		$isSelected = ((int)$data['approval_reason_id'] === (int)$rOpt['id']) ? 'selected' : '';
+		$reasonSelect .= '<option value="'.$rOpt['id'].'" '.$isSelected.'>'.htmlspecialchars($rOpt['reason'], ENT_QUOTES, 'UTF-8').'</option>';
+	}
+	$reasonSelect .= '</select>';
+
+	$customTextareaStyle = ((int)$data['approval_reason_id'] === $otherReasonId) ? 'display:block;' : 'display:none;';
+	$customTextarea = '<textarea class="custom-reason-textarea form-control form-control-sm mt-1" data-id="'.$data['id'].'" style="'.$customTextareaStyle.'" placeholder="Enter custom reason...">'.htmlspecialchars($data['approval_reason_custom'] ?? '', ENT_QUOTES, 'UTF-8').'</textarea>';
+
+	$cellContainerStyle = ((int)$data['is_approved'] === 2 || (int)$data['is_approved'] === 3) ? 'display:block;' : 'display:none;';
+	$nestedData['reason'] = '<div class="reason-cell-container" data-other-id="'.$otherReasonId.'" style="'.$cellContainerStyle.'">' . $reasonSelect . $customTextarea . '</div>';
 
 	$nestedData['expiry_date'] = 'N/A';
 	$nestedData['expire_in'] = 'N/A';
@@ -450,6 +506,28 @@ while($data = db_fetch_array($query)) {
 
     $nestedData['status'] = $data['status'] ? 'Active' : 'Inactive';
 
+	$rowApprovalReasonText = '';
+	$rowApprovalState = (int)$data['is_approved'];
+	if ($rowApprovalState === 2 || $rowApprovalState === 3) {
+		$rowReasonId = (int)($data['approval_reason_id'] ?? 0);
+		if ($rowReasonId > 0) {
+			$rowApprovalReasonText = getSingleresult("SELECT reason FROM tbl_approval_reasons WHERE id='$rowReasonId'");
+		}
+		$rowCustomReason = trim((string)($data['approval_reason_custom'] ?? ''));
+		if (strtolower(trim($rowApprovalReasonText)) === 'other' && $rowCustomReason !== '') {
+			$rowApprovalReasonText = $rowCustomReason;
+		}
+		if (empty($rowApprovalReasonText) && !empty($rowCustomReason)) {
+			$rowApprovalReasonText = $rowCustomReason;
+		}
+	}
+
+	$eyeIconHtml = '';
+	if ($rowApprovalReasonText !== '') {
+		$statusLabel = ($rowApprovalState === 2) ? 'Rejected' : 'Onhold';
+		$eyeIconHtml = ' <a href="javascript:void(0);" class="text-info view-approval-reason ml-1" data-reason="'.htmlspecialchars($rowApprovalReasonText, ENT_QUOTES, 'UTF-8').'" data-status-type="'.$statusLabel.'" title="View Reason"><i class="fa fa-eye"></i></a>';
+	}
+
 	// For Admin/SuperAdmin, show select; for USR/MNGR, show value; others keep toggle
 	$userType = $_SESSION['user_type'] ?? '';
 	$approvalBadgeMode = (isset($_REQUEST['approval_badge']) && (string)$_REQUEST['approval_badge'] === '1');
@@ -462,7 +540,11 @@ while($data = db_fetch_array($query)) {
 			3 => ['label' => 'Onhold', 'class' => 'onboard']
 		];
 		$approvalData = isset($approvalMap[$approvalState]) ? $approvalMap[$approvalState] : $approvalMap[0];
-		$nestedData['approval'] = '<span class="approval-badge '.$approvalData['class'].'">'.$approvalData['label'].'</span>';
+		$eyeIconBadge = '';
+		if ($rowApprovalReasonText !== '') {
+			$eyeIconBadge = '<a href="javascript:void(0);" class="view-approval-reason mr-1 text-dark" data-reason="'.htmlspecialchars($rowApprovalReasonText, ENT_QUOTES, 'UTF-8').'" data-status-type="'.$statusLabel.'" title="View Reason"><i class="fa fa-eye"></i></a> ';
+		}
+		$nestedData['approval'] = '<span class="approval-badge '.$approvalData['class'].'">' . $eyeIconBadge . $approvalData['label'] . '</span>';
 	} elseif ($userType === 'ADMIN' || $userType === "OPERATIONS" || $userType === 'SUPERADMIN') {
 		$approvalOptions = [
 			['value' => 0, 'label' => 'Pending'],
@@ -478,7 +560,7 @@ while($data = db_fetch_array($query)) {
 			$select .= '<option value="'.$opt['value'].'" '.$selected.'>'.$opt['label'].'</option>';
 		}
 		$select .= '</select>';
-		$nestedData['approval'] = $select;
+		$nestedData['approval'] = $eyeIconHtml . $select;
 	} else {
 		$approvalState = (int)$data['is_approved'];
 		$approvalMap = [
@@ -488,7 +570,11 @@ while($data = db_fetch_array($query)) {
 			3 => ['label' => 'Onhold', 'class' => 'onboard']
 		];
 		$approvalData = isset($approvalMap[$approvalState]) ? $approvalMap[$approvalState] : $approvalMap[0];
-		$nestedData['approval'] = '<span class="approval-badge '.$approvalData['class'].'">'.$approvalData['label'].'</span>';
+		$eyeIconBadge = '';
+		if ($rowApprovalReasonText !== '') {
+			$eyeIconBadge = '<a href="javascript:void(0);" class="view-approval-reason mr-1 text-dark" data-reason="'.htmlspecialchars($rowApprovalReasonText, ENT_QUOTES, 'UTF-8').'" data-status-type="'.$statusLabel.'" title="View Reason"><i class="fa fa-eye"></i></a> ';
+		}
+		$nestedData['approval'] = '<span class="approval-badge '.$approvalData['class'].'">' . $eyeIconBadge . $approvalData['label'] . '</span>';
 	}  
 	// else if ($userType === 'USR' || $userType === 'MNGR') {
 	// 	$nestedData['approval'] = $data['is_approved'];

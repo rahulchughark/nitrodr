@@ -42,3 +42,12 @@ ALTER TABLE `orders` ADD `license_type` VARCHAR(254) NULL DEFAULT NULL AFTER `le
 
 #29-04-2026:
 ALTER TABLE `orders` ADD `price` INT NULL DEFAULT '0' AFTER `renewal_type`;
+ALTER TABLE orders MODIFY COLUMN renewal_type ENUM('Fresh', 'Renewal', 'Expansion') NULL;
+INSERT INTO `tbl_module` (`id`, `name`, `url`, `status`, `parentId`, `setOrder`, `partner`, `user_type`, `icon`, `is_function`, `isDeleted`) VALUES (NULL, 'Renewal Leads', 'admin_renewals.php', '1', '1', '1', NULL, '', 'uploads/sidebar_icon/1591781052search_leads.png', NULL, NULL), (NULL, 'Expansion Leads', 'admin_expansions.php', '1', '1', '1', NULL, NULL, 'uploads/sidebar_icon/1591781052search_leads.png', NULL, NULL);
+
+
+#30-04-2026:
+ALTER TABLE orders 
+MODIFY license_type ENUM('Fresh', 'Renewal', 'Expansion') NULL;
+ALTER TABLE orders 
+MODIFY renewal_type ENUM('FTR', 'RR', 'Expansion') NULL;

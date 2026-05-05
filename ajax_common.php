@@ -9,7 +9,7 @@ if (!empty($_POST['pivot_id'])) {
                        ORDER BY id ASC");
     if (mysqli_num_rows($query) > 0) {
         echo '<label for="product_description" class="control-label">Description</label>';
-        echo '<select name="product_description" id="product_description" class="form-control">';
+        echo '<select name="description" id="product_description" class="form-control">';
         echo '<option value="">---Select---</option>';
         while ($row = db_fetch_array($query)) {
             echo '<option value="' . $row['id'] . '">' . htmlspecialchars($row['description']) . '</option>';

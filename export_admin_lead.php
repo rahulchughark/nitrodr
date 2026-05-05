@@ -1,22 +1,9 @@
 <?php include('includes/include.php');
 // print_r($_GET);die;
-if ($_SESSION['sales_manager'] == 1) {
-	$vir_cond = " and o.team_id in (" . $_SESSION['access'] . ") ";
-}
-if($_SESSION['role'] == 'PARTNER'){
-	$vir_cond = " and o.team_id = ".$_SESSION['team_id'];
-}else if($_SESSION['user_type'] == 'TEAM LEADER'){
-	$callesIds = getSingleResult("SELECT caller from users where id=".$_SESSION['user_id']);
-	$callesIdsA = explode(",", $callesIds);
-	foreach ($callesIdsA as $value) {
-	
-	$calleruidQ = getSingleResult("select user_id from callers where id=".$value);
-	$caller_userId[]=$calleruidQ;
-	}
-	$callesIdsForQ = implode(",", $caller_userId);
-	$vir_cond = " and o.created_by in (".$callesIdsForQ.")";
-}else if($_SESSION['user_type'] != 'ADMIN' && $_SESSION['user_type'] != 'SUPERADMIN' && $_SESSION['role'] == 'ISS'){
-	$vir_cond = " and o.created_by = ".$_SESSION['user_id'];
+if ($_SESSION['user_type'] == 'ADMIN' || $_SESSION['user_type'] == 'SUPERADMIN') {
+	$vir_cond = "";
+} else {
+	$vir_cond = " AND o.created_by = '" . $_SESSION['user_id'] . "'";
 }
 
 if($_GET['d_from'] && $_GET['d_to'])

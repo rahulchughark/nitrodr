@@ -180,6 +180,12 @@ if ($isApproved === 2 || $isApproved === 3) {
         $approvalReasonText = $customReason;
     }
 }
+
+$alertClass = ($isApproved === 2) ? 'alert-danger' : 'alert-warning';
+$iconClass = ($isApproved === 2) ? 'fa-exclamation-circle' : 'fa-pause-circle';
+$bgColor = ($isApproved === 2) ? '#fff5f5' : '#fffaf0';
+$textColor = ($isApproved === 2) ? '#e53e3e' : '#dd6b20';
+$shadowColor = ($isApproved === 2) ? 'rgba(229, 62, 62, 0.08)' : 'rgba(221, 107, 32, 0.08)';
 ?>
 <style>
     .lead-view-card .card-subtitle { margin: 0; padding: 8px 10px; background: #f4f6f9; font-size: 13px; color: #1B274D; }
@@ -613,9 +619,8 @@ if ($isApproved === 2 || $isApproved === 3) {
                         <div class="col-md-6">
                             <div class="view-row"><div class="view-label">Partner</div><div class="view-value">
                                 <?php if ($partnerId > 0) { ?>
-                                    <?= text_or_na($partnerName !== '' ? $partnerName : $partnerId) ?>
-                                    <!-- $canPerformActions && $currentRoleType !== 'MNGR' && $currentRoleType !== 'USR' -->
-                                    <?php if ($canPerformActions && $currentRoleType === 'ADMIN') { ?>
+                                    <?= ($partnerName !== '') ? htmlspecialchars($partnerName) : '<span class="status-badge status-rejected"><i class="fa fa-exclamation-circle mr-1"></i> Partner Not Found</span>' ?>
+                                    <?php if ($canPerformActions && $currentRoleType === 'ADMIN' && $partnerName !== '') { ?>
                                     <a href="add_partner.php?eid=<?= $partnerId ?>" target="_blank" rel="noopener" title="View Partner" class="ml-2 text-primary"><i class="fa fa-eye"></i></a>
                                     <?php } ?>
                                 <?php } else { ?>
@@ -624,9 +629,8 @@ if ($isApproved === 2 || $isApproved === 3) {
                             </div></div>
                             <div class="view-row"><div class="view-label">Align To</div><div class="view-value">
                                 <?php if ($alignToUserId > 0) { ?>
-                                    <?= text_or_na($alignToUserName !== '' ? $alignToUserName : $alignToUserId) ?>
-                                    <!-- $canPerformActions && $currentRoleType !== 'MNGR' && $currentRoleType !== 'USR' -->
-                                    <?php if ($canPerformActions && $currentRoleType === 'ADMIN') { ?>
+                                    <?= ($alignToUserName !== '') ? htmlspecialchars($alignToUserName) : '<span class="status-badge status-rejected"><i class="fa fa-exclamation-circle mr-1"></i> User Not Found</span>' ?>
+                                    <?php if ($canPerformActions && $currentRoleType === 'ADMIN' && $alignToUserName !== '') { ?>
                                     <a href="edit_user.php?id=<?= $alignToUserId ?>" target="_blank" rel="noopener" title="View User" class="ml-2 text-primary"><i class="fa fa-eye"></i></a>
                                     <?php } ?>
                                 <?php } else { ?>
@@ -654,23 +658,6 @@ if ($isApproved === 2 || $isApproved === 3) {
 
                     <?php if ($currentRoleType === 'ADMIN') { ?>
                     <h5 class="card-subtitle mt-3">Lead Actions</h5>
-                    <?php if ($approvalReasonText !== '') {
-                        $alertClass = ($isApproved === 2) ? 'alert-danger' : 'alert-warning';
-                        $iconClass = ($isApproved === 2) ? 'fa-exclamation-circle' : 'fa-pause-circle';
-                        $bgColor = ($isApproved === 2) ? '#fff5f5' : '#fffaf0';
-                        $textColor = ($isApproved === 2) ? '#e53e3e' : '#dd6b20';
-                        $shadowColor = ($isApproved === 2) ? 'rgba(229, 62, 62, 0.08)' : 'rgba(221, 107, 32, 0.08)';
-                    ?>
-                    <div class="alert <?= $alertClass ?> mt-2 mb-3" role="alert" style="border-radius: 10px; border: none; background: <?= $bgColor ?>; color: <?= $textColor ?>; box-shadow: 0 4px 12px <?= $shadowColor ?>; padding: 16px 20px;">
-                        <div class="d-flex align-items-center">
-                            <i class="fa <?= $iconClass ?> fa-lg mr-3 text-danger"></i>
-                            <div>
-                                <strong style="font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 0.95rem;"><?= ($isApproved === 2) ? 'Rejection Reason' : 'Onhold Reason' ?>:</strong>
-                                <div class="mt-1" style="font-family: 'Outfit', sans-serif; font-weight: 400; font-size: 0.95rem; line-height: 1.4;"><?= htmlspecialchars($approvalReasonText, ENT_QUOTES, 'UTF-8') ?></div>
-                            </div>
-                        </div>
-                    </div>
-                    <?php } ?>
                     <div class="row mt-2">
                         
                         <div class="col-md-6">
@@ -710,25 +697,24 @@ if ($isApproved === 2 || $isApproved === 3) {
                             </div>
                         </div>
                     </div>
-                    <?php } else { ?>
-                    <h5 class="card-subtitle mt-3">Lead Actions</h5>
-                    <?php if ($approvalReasonText !== '') {
-                        $alertClass = ($isApproved === 2) ? 'alert-danger' : 'alert-warning';
-                        $iconClass = ($isApproved === 2) ? 'fa-exclamation-circle' : 'fa-pause-circle';
-                        $bgColor = ($isApproved === 2) ? '#fff5f5' : '#fffaf0';
-                        $textColor = ($isApproved === 2) ? '#e53e3e' : '#dd6b20';
-                        $shadowColor = ($isApproved === 2) ? 'rgba(229, 62, 62, 0.08)' : 'rgba(221, 107, 32, 0.08)';
-                    ?>
-                    <div class="alert <?= $alertClass ?> mt-2 mb-3" role="alert" style="border-radius: 10px; border: none; background: <?= $bgColor ?>; color: <?= $textColor ?>; box-shadow: 0 4px 12px <?= $shadowColor ?>; padding: 16px 20px;">
-                        <div class="d-flex align-items-center">
-                            <i class="fa <?= $iconClass ?> fa-lg mr-3"></i>
-                            <div>
-                                <strong style="font-family: 'Outfit', sans-serif; font-weight: 600; font-size: 0.95rem;"><?= ($isApproved === 2) ? 'Rejection Reason' : 'Onhold Reason' ?>:</strong>
-                                <div class="mt-1" style="font-family: 'Outfit', sans-serif; font-weight: 400; font-size: 0.95rem; line-height: 1.4;"><?= htmlspecialchars($approvalReasonText, ENT_QUOTES, 'UTF-8') ?></div>
+
+                    <?php if ($approvalReasonText !== '') { ?>
+                    <div class="p-3 mt-3" style="border-radius: 12px; border: 1px solid <?= $textColor ?>22; background: <?= $bgColor ?>; box-shadow: 0 4px 15px <?= $shadowColor ?>;">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <div class="d-flex align-items-center justify-content-center bg-white rounded-circle shadow-sm" style="width: 40px; height: 40px;">
+                                    <i class="fa <?= $iconClass ?> fa-lg" style="color: <?= $textColor ?>;"></i>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <h6 class="mb-1 font-weight-bold" style="color: <?= $textColor ?>; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;"><?= ($isApproved === 2) ? 'Rejection' : 'Onhold' ?> Remark</h6>
+                                <div style="color: #4a5568; font-size: 0.95rem; line-height: 1.5; font-family: 'Outfit', sans-serif;"><?= htmlspecialchars($approvalReasonText, ENT_QUOTES, 'UTF-8') ?></div>
                             </div>
                         </div>
                     </div>
                     <?php } ?>
+                    <?php } else { ?>
+                    <h5 class="card-subtitle mt-3">Lead Actions</h5>
                     <div class="row mt-2">
                         <div class="col-md-6">
                             <div class="view-row"><div class="view-label">Approval <?php if ($isApproved === 1 && !empty($row['price'])) { echo '<span style="color:#2ecc71; font-size:0.95rem; font-weight:600; display:inline-block; margin-left:8px;">(Price: ₹'.htmlspecialchars($row['price'], ENT_QUOTES, 'UTF-8').')</span>'; } ?></div><div class="view-value"><?php
@@ -741,6 +727,22 @@ if ($isApproved === 2 || $isApproved === 3) {
                             <div class="view-row"><div class="view-label">Opportunity</div><div class="view-value"><?= $isOpportunity ? 'Yes' : 'No' ?></div></div>
                         </div>
                     </div>
+
+                    <?php if ($approvalReasonText !== '') { ?>
+                    <div class="p-3 mt-3" style="border-radius: 12px; border: 1px solid <?= $textColor ?>22; background: <?= $bgColor ?>; box-shadow: 0 4px 15px <?= $shadowColor ?>;">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <div class="d-flex align-items-center justify-content-center bg-white rounded-circle shadow-sm" style="width: 40px; height: 40px;">
+                                    <i class="fa <?= $iconClass ?> fa-lg" style="color: <?= $textColor ?>;"></i>
+                                </div>
+                            </div>
+                            <div class="col">
+                                <h6 class="mb-1 font-weight-bold" style="color: <?= $textColor ?>; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;"><?= ($isApproved === 2) ? 'Rejection' : 'Onhold' ?> Remark</h6>
+                                <div style="color: #4a5568; font-size: 0.95rem; line-height: 1.5; font-family: 'Outfit', sans-serif;"><?= htmlspecialchars($approvalReasonText, ENT_QUOTES, 'UTF-8') ?></div>
+                            </div>
+                        </div>
+                    </div>
+                    <?php } ?>
                     <?php } ?>
 
                     <h5 class="card-subtitle mt-3">System Details</h5>
@@ -749,9 +751,8 @@ if ($isApproved === 2 || $isApproved === 3) {
                             <div class="view-row"><div class="view-label">Lead ID</div><div class="view-value"><?= text_or_na($row['id'] ?? '') ?></div></div>
 
                             <div class="view-row"><div class="view-label">Created By  </div><div class="view-value">
-                                <?= text_or_na($createdByUserName !== '' ? ucwords($createdByUserName) : ($row['created_by'] ?? '')) ?>
-                                <!-- $canPerformActions && $currentRoleType === 'ADMIN' && !empty($row['created_by']) -->
-                                <?php if ($canPerformActions && $currentRoleType === 'ADMIN' && !empty($row['created_by'])) { ?>
+                                <?= ($createdByUserName !== '') ? ucwords(htmlspecialchars($createdByUserName)) : '<span class="status-badge status-rejected"><i class="fa fa-exclamation-circle mr-1"></i> User Not Found</span>' ?>
+                                <?php if ($canPerformActions && $currentRoleType === 'ADMIN' && $createdByUserName !== '') { ?>
                                     <a href="edit_user.php?id=<?= (int)$row['created_by'] ?>" target="_blank" rel="noopener" title="View User" class="ml-2 text-primary"><i class="fa fa-eye"></i></a>
                                 <?php } ?>
                             </div></div>
@@ -872,26 +873,58 @@ if ($isApproved === 2 || $isApproved === 3) {
 </div>
 
 <div id="approvalPriceModal" class="modal fade" role="dialog" style="backdrop-filter: blur(5px);">
-   
+    <style>
+        #approvalPriceModal .modal-content {
+            border: none !important;
+            border-radius: 16px !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+            background: #ffffff !important;
+            overflow: hidden !important;
+        }
+        #approvalPriceModal .modal-header {
+            padding: 0 !important;
+            border: none !important;
+            background: linear-gradient(135deg, #CCE3E4 0%, #E9D5C3 100%);
+        }
+        #approvalPriceModal .modal-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 600;
+            color: #1B274D;
+        }
+        #approvalPriceModal .close {
+            color: #1B274D !important;
+            opacity: 0.7;
+        }
+        #approvalPriceModal .btn-primary {
+            background: linear-gradient(135deg, #F05A28 0%, #E53E3E 100%);
+            border: none;
+            box-shadow: 0 4px 12px rgba(240, 90, 40, 0.2);
+        }
+        #approvalPriceModal .btn-secondary {
+            background: #e2e8f0;
+            border: none;
+            color: #4a5568;
+        }
+    </style>
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <div class="w-100 d-flex align-items-center justify-content-between" style="padding: 20px 24px;">
-                    <h5 class="modal-title text-white m-0"><i class="fa fa-tag mr-2"></i> Pricing Required</h5>
+                    <h5 class="modal-title m-0"><i class="fa fa-tag mr-2"></i> Pricing Required</h5>
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
             </div>
-            <div class="modal-body">
+            <div class="modal-body" style="padding: 30px 24px;">
                 <input type="hidden" id="modal_price_lead_id">
                 <input type="hidden" id="modal_price_status" value="1">
                 <div class="form-group">
-                    <label class="font-weight-bold"><i class="fa fa-dollar-sign mr-1 text-primary"></i> Enter Price <span class="text-danger">*</span></label>
-                    <input type="number" id="modal_approval_price" class="form-control" placeholder="e.g. 5000" min="0">
+                    <label class="font-weight-bold" style="color: #4a5568;"><span class="text-primary mr-1">₹</span> Enter Price <span class="text-danger">*</span></label>
+                    <input type="number" id="modal_approval_price" class="form-control" placeholder="e.g. 5000" min="0" style="border-radius: 10px; border: 2px solid #e2e8f0; padding: 12px 16px;">
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="btn_save_approval_price">Submit & Approve</button>
+            <div class="modal-footer" style="background: #f8fafc; border-top: 1px solid #edf2f7; padding: 16px 24px;">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" style="border-radius: 10px; padding: 10px 20px; font-weight: 600;">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btn_save_approval_price" style="border-radius: 10px; padding: 10px 20px; font-weight: 600;">Submit & Approve</button>
             </div>
         </div>
     </div>
@@ -910,17 +943,18 @@ if ($isApproved === 2 || $isApproved === 3) {
         #approvalReasonModal .modal-header {
             padding: 0 !important;
             border: none !important;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #CCE3E4 0%, #E9D5C3 100%);
         }
         #approvalReasonModal .modal-title {
             font-family: 'Outfit', sans-serif;
             font-weight: 600;
             letter-spacing: 0.5px;
             font-size: 1.25rem;
+            color: #1B274D;
         }
         #approvalReasonModal .close {
             background: transparent !important;
-            color: white !important;
+            color: #1B274D !important;
             border: none !important;
             position: relative !important;
             top: 0 !important;
@@ -930,7 +964,7 @@ if ($isApproved === 2 || $isApproved === 3) {
             box-shadow: none !important;
             font-size: 28px !important;
             font-weight: 300 !important;
-            opacity: 0.8 !important;
+            opacity: 0.6 !important;
             cursor: pointer;
         }
         #approvalReasonModal .close:hover {
@@ -955,8 +989,8 @@ if ($isApproved === 2 || $isApproved === 3) {
             color: #2d3748;
         }
         #approvalReasonModal .form-control:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #F05A28;
+            box-shadow: 0 0 0 3px rgba(240, 90, 40, 0.1);
         }
         #approvalReasonModal .modal-footer {
             border-top: 1px solid #edf2f7;
@@ -980,14 +1014,14 @@ if ($isApproved === 2 || $isApproved === 3) {
             color: #4a5568;
         }
         #approvalReasonModal .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #F05A28 0%, #E53E3E 100%);
             border: none;
             color: #ffffff;
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+            box-shadow: 0 4px 12px rgba(240, 90, 40, 0.25);
         }
         #approvalReasonModal .btn-primary:hover {
             transform: translateY(-1px);
-            box-shadow: 0 6px 16px rgba(102, 126, 234, 0.35);
+            box-shadow: 0 6px 16px rgba(240, 90, 40, 0.35);
         }
         #approvalReasonModal .btn-primary:active {
             transform: translateY(0);
@@ -1004,7 +1038,7 @@ if ($isApproved === 2 || $isApproved === 3) {
         <div class="modal-content">
             <div class="modal-header">
                 <div class="w-100 d-flex align-items-center justify-content-between" style="padding: 20px 24px;">
-                    <h5 class="modal-title text-white m-0"><i class="fa fa-exclamation-circle mr-2"></i> Status Update Required</h5>
+                    <h5 class="modal-title m-0"><i class="fa fa-exclamation-circle mr-2"></i> Status Update Required</h5>
                     <button type="button" class="close" data-dismiss="modal">&times;</button>
                 </div>
             </div>

@@ -11,7 +11,7 @@ function openWhatsappModal(element) {
     const userId = element.getAttribute('data-userid');
     loadModalHtmlBox(leadId,phone,userId);
     markNotificationAsSeen(null,null,phone);
-    fetchWhatsappNotification();
+    // fetchWhatsappNotification();
     $(".not-count-"+phone).html("0");
 
     // $('#whatsappModal-static').modal('show');
@@ -85,9 +85,9 @@ $(".whatsapp-btn-icon").on('click',function(){
     channel.bind('my-event', function(data) {
   
     getWhatsAppMessages(globalPhone,globalLeadID); 
-    fetchWhatsappNotification();  
+    // fetchWhatsappNotification();  
     markNotificationAsSeen(null,null,globalPhone);
-    fetchWhatsappNotification();
+    // fetchWhatsappNotification();
     getWhatsAppNotificationCount(data['mobile']);
    
     
@@ -96,7 +96,7 @@ $(".whatsapp-btn-icon").on('click',function(){
 
      
 
-     fetchWhatsappNotification();
+    //  fetchWhatsappNotification();
     //   function fetchWhatsappNotification(){
     //     $('#whatsapp-notification').load('whatsapp_notification.php');
     //   }

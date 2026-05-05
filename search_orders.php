@@ -283,26 +283,47 @@ if($_POST['save_partner_csv']){
         transform: translateX(20px);
     }
     /* Approval select styles: white select with a colored left indicator */
-    .approval-wrapper { display: inline-block; position: relative; vertical-align: middle; }
-    .approval-wrapper .approval-indicator { position: absolute; left: 0; top: 0; bottom: 0; width: 8px; border-radius: 6px 0 0 6px; }
-    .approval-select { width: 140px; padding: 6px 12px 6px 18px; font-size: 13px; border-radius: 6px; border: 1px solid #ced4da; background: #fff; color: #212529; appearance: none; -webkit-appearance: none; -moz-appearance: none; }
-    .approval-wrapper.pending .approval-indicator { background: #f0ad4e; }
-    .approval-wrapper.approved .approval-indicator { background: #28a745; }
-    .approval-wrapper.rejected .approval-indicator { background: #dc3545; }
-    .approval-wrapper.onboard .approval-indicator { background: #007bff; }
+    .approval-wrapper { display: inline-block; position: relative; vertical-align: middle; overflow: hidden; border-radius: 6px; }
+    .approval-wrapper .approval-indicator { position: absolute; left: 0; top: 0; bottom: 0; width: 24px; border-radius: 6px 0 0 6px; pointer-events: none; }
+    .approval-select { width: 140px; padding: 6px 12px 6px 30px; font-size: 13px; border-radius: 6px; border: 1px solid #ced4da; background: #fff; color: #212529; appearance: none; -webkit-appearance: none; -moz-appearance: none; }
+    .approval-wrapper.pending .approval-indicator { background: linear-gradient(135deg, #ffb347 0%, #f0ad4e 100%); }
+    .approval-wrapper.approved .approval-indicator { background: linear-gradient(135deg, #5cb85c 0%, #28a745 100%); }
+    .approval-wrapper.rejected .approval-indicator { background: linear-gradient(135deg, #d9534f 0%, #dc3545 100%); }
+    .approval-wrapper.onboard .approval-indicator { background: linear-gradient(135deg, #0275d8 0%, #007bff 100%); }
+    .approval-wrapper .view-approval-reason { position: absolute; left: 0; top: 0; bottom: 0; width: 24px; display: flex; align-items: center; justify-content: center; z-index: 10; color: rgba(255, 255, 255, 0.95) !important; font-size: 13px; cursor: pointer; pointer-events: auto; transition: all 0.25s ease; }
+    .approval-wrapper .view-approval-reason:hover { color: #ffffff !important; transform: scale(1.25); text-shadow: 0 0 8px rgba(255,255,255,0.8); }
     .approval-badge {
-        display: inline-block;
-        padding: 4px 10px;
-        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 5px 12px;
+        border-radius: 20px;
         font-size: 12px;
         font-weight: 600;
-        line-height: 1.2;
+        line-height: 1;
+        white-space: nowrap;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
     }
     .approval-badge.pending { background: #fff4e6; color: #c57600; }
     .approval-badge.approved { background: #e6f7ee; color: #1f8f4e; }
     .approval-badge.rejected { background: #fdecea; color: #b02a37; }
     .approval-badge.onboard { background: #e7f1ff; color: #1155cc; }
+    /* subtle focus */
     .approval-select:focus { outline: none; box-shadow: 0 0 0 2px rgba(0,123,255,0.12); border-color: #80bdff; }
+    .approval-select:disabled {
+        background: #f8f9fa;
+        color: #6c757d;
+        border-color: #e0e0e0;
+        cursor: not-allowed;
+        opacity: 1;
+    }
+    .approval-wrapper:has(.approval-select:disabled) {
+        opacity: 0.95;
+    }
+    .approval-wrapper:has(.approval-select:disabled)::after {
+        color: #adb5bd;
+    }
     .approval-wrapper::after { content: '\25BC'; position: absolute; right: 8px; top: 50%; transform: translateY(-50%); pointer-events: none; color: #6c757d; font-size: 11px; }
 </style>
 <!-- ============================================================== -->
@@ -764,7 +785,7 @@ if($_POST['save_partner_csv']){
                             { data: 'expiry_date' },
                             { data: 'expire_in' },
                             <?php if (($_SESSION['user_type'] ?? '') === 'MNGR') { ?>
-                            { data: 'created_by_name', className: 'text-nowrap' },
+                            { data: 'created_by_name' },
                             <?php } ?>
                             // Status column removed
                             {

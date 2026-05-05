@@ -1,6 +1,6 @@
 <?php include('includes/header.php');
 include('includes/audit_log_helper.php');
-admin_page(); 
+// admin_page(); 
 
 
 // sendMail($addTo, $addCc, $addBcc, $setSubject, $body)
@@ -385,8 +385,8 @@ if($_POST['save_partner_csv']){
                                         <img class="d-flex mr-3 rounded-circle avatar-xs" src="images/title-icon.png" alt=" ">
                                         <div class="media-body">
 
-                                            <small class="text-muted">Home >Leads</small>
-                                            <h4 class="font-size-14 m-0 mt-1">Search Leads</h4>
+                                            <small class="text-muted">Home > Expansions</small>
+                                            <h4 class="font-size-14 m-0 mt-1">Search Expansions</h4>
                                         </div>
                                     </div>
                                 </div>
@@ -445,10 +445,8 @@ if($_POST['save_partner_csv']){
                                                         </div>
                                                         <div class="form-group col-md-6 col-xl-3">
                                                             <select name="approval_status[]" class="form-control" id="multiselect_approval_status" multiple>
-                                                                <option <?= (in_array('0', $_GET['approval_status'] ?? []) ? 'selected' : '') ?> value="0">Pending</option>
-                                                                <option <?= (in_array('1', $_GET['approval_status'] ?? []) ? 'selected' : '') ?> value="1">Approve</option>
-                                                                <option <?= (in_array('2', $_GET['approval_status'] ?? []) ? 'selected' : '') ?> value="2">Reject</option>
-                                                                <option <?= (in_array('3', $_GET['approval_status'] ?? []) ? 'selected' : '') ?> value="3">On hold</option>
+                                                                <option <?= (in_array('1', $_GET['approval_status'] ?? []) ? 'selected' : '') ?> value="1">Approved</option>
+                                                                <option <?= (in_array('0', $_GET['approval_status'] ?? []) ? 'selected' : '') ?> value="0">Not Approved</option>
                                                             </select>
                                                         </div>
                                                         <div class="form-group col-md-6 col-xl-3">
@@ -582,18 +580,17 @@ if($_POST['save_partner_csv']){
                 #approvalPriceModal .modal-header {
                     padding: 0 !important;
                     border: none !important;
-                    background: linear-gradient(135deg, #CCE3E4 0%, #E9D5C3 100%);
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 }
                 #approvalPriceModal .modal-title {
                     font-family: 'Outfit', sans-serif;
                     font-weight: 600;
                     letter-spacing: 0.5px;
                     font-size: 1.25rem;
-                    color: #1B274D;
                 }
                 #approvalPriceModal .close {
                     background: transparent !important;
-                    color: #1B274D !important;
+                    color: white !important;
                     border: none !important;
                     position: relative !important;
                     top: 0 !important;
@@ -603,7 +600,7 @@ if($_POST['save_partner_csv']){
                     box-shadow: none !important;
                     font-size: 28px !important;
                     font-weight: 300 !important;
-                    opacity: 0.6 !important;
+                    opacity: 0.8 !important;
                     cursor: pointer;
                 }
                 #approvalPriceModal .close:hover {
@@ -628,8 +625,8 @@ if($_POST['save_partner_csv']){
                     color: #2d3748;
                 }
                 #approvalPriceModal .form-control:focus {
-                    border-color: #F05A28;
-                    box-shadow: 0 0 0 3px rgba(240, 90, 40, 0.1);
+                    border-color: #667eea;
+                    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
                 }
                 #approvalPriceModal .modal-footer {
                     border-top: 1px solid #edf2f7;
@@ -653,14 +650,14 @@ if($_POST['save_partner_csv']){
                     color: #4a5568;
                 }
                 #approvalPriceModal .btn-primary {
-                    background: linear-gradient(135deg, #F05A28 0%, #E53E3E 100%);
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                     border: none;
                     color: #ffffff;
-                    box-shadow: 0 4px 12px rgba(240, 90, 40, 0.25);
+                    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
                 }
                 #approvalPriceModal .btn-primary:hover {
                     transform: translateY(-1px);
-                    box-shadow: 0 6px 16px rgba(240, 90, 40, 0.35);
+                    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.35);
                 }
                 #approvalPriceModal .btn-primary:active {
                     transform: translateY(0);
@@ -670,7 +667,7 @@ if($_POST['save_partner_csv']){
                 <div class="modal-content">
                     <div class="modal-header">
                         <div class="w-100 d-flex align-items-center justify-content-between" style="padding: 20px 24px;">
-                            <h5 class="modal-title m-0"><i class="fa fa-tag mr-2"></i> Pricing Required</h5>
+                            <h5 class="modal-title text-white m-0"><i class="fa fa-tag mr-2"></i> Pricing Required</h5>
                             <button type="button" class="close" data-dismiss="modal">&times;</button>
                         </div>
                     </div>
@@ -678,7 +675,7 @@ if($_POST['save_partner_csv']){
                         <input type="hidden" id="modal_price_lead_id">
                         <input type="hidden" id="modal_price_status" value="1">
                         <div class="form-group">
-                            <label class="font-weight-bold"><span class="text-primary mr-1">₹</span> Enter Price <span class="text-danger">*</span></label>
+                            <label class="font-weight-bold"><i class="fa fa-dollar-sign mr-1 text-primary"></i> Enter Price <span class="text-danger">*</span></label>
                             <input type="number" id="modal_approval_price" class="form-control" placeholder="e.g. 5000" min="0">
                         </div>
                     </div>
@@ -703,18 +700,17 @@ if($_POST['save_partner_csv']){
                 #approvalReasonModal .modal-header {
                     padding: 0 !important;
                     border: none !important;
-                    background: linear-gradient(135deg, #CCE3E4 0%, #E9D5C3 100%);
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 }
                 #approvalReasonModal .modal-title {
                     font-family: 'Outfit', sans-serif;
                     font-weight: 600;
                     letter-spacing: 0.5px;
                     font-size: 1.25rem;
-                    color: #1B274D;
                 }
                 #approvalReasonModal .close {
                     background: transparent !important;
-                    color: #1B274D !important;
+                    color: white !important;
                     border: none !important;
                     position: relative !important;
                     top: 0 !important;
@@ -724,7 +720,7 @@ if($_POST['save_partner_csv']){
                     box-shadow: none !important;
                     font-size: 28px !important;
                     font-weight: 300 !important;
-                    opacity: 0.6 !important;
+                    opacity: 0.8 !important;
                     cursor: pointer;
                 }
                 #approvalReasonModal .close:hover {
@@ -749,8 +745,8 @@ if($_POST['save_partner_csv']){
                     color: #2d3748;
                 }
                 #approvalReasonModal .form-control:focus {
-                    border-color: #F05A28;
-                    box-shadow: 0 0 0 3px rgba(240, 90, 40, 0.1);
+                    border-color: #667eea;
+                    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
                 }
                 #approvalReasonModal .modal-footer {
                     border-top: 1px solid #edf2f7;
@@ -774,14 +770,14 @@ if($_POST['save_partner_csv']){
                     color: #4a5568;
                 }
                 #approvalReasonModal .btn-primary {
-                    background: linear-gradient(135deg, #F05A28 0%, #E53E3E 100%);
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                     border: none;
                     color: #ffffff;
-                    box-shadow: 0 4px 12px rgba(240, 90, 40, 0.25);
+                    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
                 }
                 #approvalReasonModal .btn-primary:hover {
                     transform: translateY(-1px);
-                    box-shadow: 0 6px 16px rgba(240, 90, 40, 0.35);
+                    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.35);
                 }
                 #approvalReasonModal .btn-primary:active {
                     transform: translateY(0);
@@ -798,7 +794,7 @@ if($_POST['save_partner_csv']){
                 <div class="modal-content">
                     <div class="modal-header">
                         <div class="w-100 d-flex align-items-center justify-content-between" style="padding: 20px 24px;">
-                            <h5 class="modal-title m-0"><i class="fa fa-exclamation-circle mr-2"></i> Status Update Required</h5>
+                            <h5 class="modal-title text-white m-0"><i class="fa fa-exclamation-circle mr-2"></i> Status Update Required</h5>
                             <button type="button" class="close" data-dismiss="modal">&times;</button>
                         </div>
                     </div>
@@ -874,6 +870,7 @@ if($_POST['save_partner_csv']){
                     d.approval_status = '<?= json_encode($_GET['approval_status'] ?? []) ?>';
                     d.assigned_partner_id = '<?= json_encode($_GET['assigned_partner_id'] ?? []) ?>';
                     d.align_to = '<?= json_encode($_GET['align_to'] ?? []) ?>';
+                    d.renewal_type = 'Expansion';
                     },
                     error: function() { // error handling
                         $(".employee-grid-error").html("");
@@ -977,7 +974,7 @@ if($_POST['save_partner_csv']){
 
 
             function clear_search() {
-                window.location = 'admin_leads.php';
+                window.location = 'admin_expansions.php';
             }
 
             $(document).ready(function() {

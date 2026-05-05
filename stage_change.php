@@ -1,492 +1,367 @@
-<?php include "includes/include.php";
+<?php
+include "includes/include.php";
 
-$currentYear = date("Y");
-$academicYears = [];
-for ($i = -1; $i <= 1; $i++) {
-    $start = $currentYear + $i;
-    $end = $start + 1;
-    $academicYears[] = $start . "-" . $end;
+// Get Lead ID from POST
+$leadId = isset($_POST['pid']) ? (int)$_POST['pid'] : 0;
+if ($leadId <= 0) {
+    echo '<div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-body text-center text-danger p-5"><h4>Invalid Lead ID</h4></div></div></div>';
+    exit;
+}
+
+// Fetch Lead Details using the correct column 'customer_company_name'
+$leadQuery = db_query("SELECT id, customer_company_name, stage_id FROM orders WHERE id='".$leadId."'");
+$leadData = db_fetch_array($leadQuery);
+
+if (!$leadData) {
+    echo '<div class="modal-dialog modal-dialog-centered"><div class="modal-content"><div class="modal-body text-center text-danger p-5"><h4>Lead not found</h4></div></div></div>';
+    exit;
+}
+
+$companyName = $leadData['customer_company_name'] !== '' ? $leadData['customer_company_name'] : 'N/A';
+$currentStageId = (int)$leadData['stage_id'];
+
+// Fetch available stages from tbl_mst_stage
+$stages = [];
+$stageRes = db_query("SELECT id, name FROM tbl_mst_stage WHERE status=1 ORDER BY name ASC");
+while ($sRow = db_fetch_array($stageRes)) {
+    $stages[] = $sRow;
 }
 ?>
-<div class="modal-dialog modal-dialog-centered modal-lg">
 
-	<!-- Modal content-->
-	<div class="modal-content">
-		<div class="modal-header">
-			<h5 class="modal-title align-self-center mt-0" id="exampleModalLabel">Change Stage for <?php echo getSingleresult(
-       "select school_name from orders where id=" . $_POST["pid"]
-   ); ?></h5>
-			<button type="button" class="close" data-dismiss="modal" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-		</div>
-		<div class="modal-body">
-			<form action="#" method="post" class="form p-t-20" enctype="multipart/form-data">
-				<?php
-    $current_stage = getSingleresult(
-        "select stage from orders where id=" . $_POST["pid"]
-    );
-	$academic_year = getSingleresult(
-        "select academic_year from orders where id=" . $_POST["pid"]
-    );
-    $add_comm = getSingleresult(
-        "select add_comm from orders where id=" . $_POST["pid"]
-    );
-    $payment_status = getSingleresult(
-        "select partial_payment from orders where id=" . $_POST["pid"]
-    );
-    $programStartDate = getSingleresult(
-        "select program_start_date from orders where id=" . $_POST["pid"]
-    );
-    $program_initiation_date = getSingleresult(
-        "select program_initiation_date from orders where id=" . $_POST["pid"]
-    );
-    $is_opportunity = getSingleresult(
-        "select is_opportunity from orders where id=" . $_POST["pid"]
-    );
-    if ($add_comm == "Demo Arranged") {
-        $demo_schedule = getSingleresult(
-            "select demo_arranged_schedule from orders where id=" .
-                $_POST["pid"]
-        );
-    } elseif ($add_comm == "Demo Rescheduled") {
-        $demo_schedule = getSingleresult(
-            "select demo_rescheduled_schedule from orders where id=" .
-                $_POST["pid"]
-        );
-    } elseif ($add_comm == "Demo Completed") {
-        $demo_schedule = getSingleresult(
-            "select demo_completed_schedule from orders where id=" .
-                $_POST["pid"]
-        );
+<div class="modal-dialog modal-dialog-centered custom-stage-modal">
+    <div class="modal-content overflow-hidden border-0">
+        <!-- Close Button -->
+        <button type="button" class="close custom-modal-close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+
+        <!-- Modern Header -->
+        <div class="modal-header-premium">
+            <div class="header-icon-wrapper">
+                <i class="fa fa-sliders"></i>
+            </div>
+            <div class="header-content">
+                <h5 class="modal-title">Update Stage</h5>
+                <p class="modal-subtitle">Progress your opportunity to the next level</p>
+            </div>
+        </div>
+
+        <div class="modal-body p-4">
+            <!-- Info Card -->
+            <div class="org-info-card mb-4">
+                <div class="info-label">Company</div>
+                <div class="info-value"><?= htmlspecialchars($companyName) ?></div>
+            </div>
+            
+            <!-- Selection Area -->
+            <div class="form-group mb-0">
+                <label for="stageSelectModal" class="selection-label">
+                    <span>Target Stage</span>
+                    <span class="badge badge-soft-primary">Required</span>
+                </label>
+                <div class="select-wrapper">
+                    <select id="stageSelectModal" class="form-control custom-select-premium">
+                        <option value="">--- Select New Stage ---</option>
+                        <?php foreach ($stages as $stage) { ?>
+                            <option value="<?= $stage['id'] ?>" <?= ($stage['id'] == $currentStageId) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($stage['name']) ?>
+                            </option>
+                        <?php } ?>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Styled Footer -->
+        <div class="modal-footer-premium px-4 py-3">
+            <button type="button" class="btn btn-cancel" data-dismiss="modal">Cancel</button>
+            <button type="button" id="saveStageBtnModal" class="btn btn-update">
+                <span class="btn-text">Update Now</span>
+                <i class="fa fa-chevron-right ml-2"></i>
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap');
+
+    .custom-stage-modal {
+        font-family: 'Outfit', sans-serif;
+        max-width: 420px; /* Custom medium-small width */
     }
 
-    $product_stage = db_query(
-        "select distinct(form_id) from tbl_lead_product where lead_id=" .
-            $_POST["pid"]
-    );
-    $p_stage = db_fetch_array($product_stage);
+    .custom-stage-modal .modal-content {
+        border-radius: 24px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        background: #fff;
+    }
 
-    $id = "'" . $_POST["pid"] . "'";
-    ?>
+    /* Header Styling */
+    .modal-header-premium {
+        background: linear-gradient(135deg, #1B274D 0%, #2D3E75 100%);
+        padding: 20px 20px;
+        display: flex;
+        align-items: center;
+        color: white;
+        position: relative;
+    }
 
-				<div class="col-md-12 p-0">
-            <div class="form-group">
-              <label for="example-text-input">Stage<span class="text-danger">*</span></label>
-							<select class="form-control" name="stage" id="dd_stage" onchange="select_stage(this.value,<?php echo $id; ?>)">
-								<option value="" >---Select---</option>';
-								<?php
-        if ($i == 1) {
-            $sqlStage = "select * from stages where 1 ";
-            $stageList = db_query($sqlStage);
-        } else {
-            $sqlStage = "select * from stages";
-            $stageList = db_query($sqlStage);
-        }
+    .header-icon-wrapper {
+        width: 36px;
+        height: 36px;
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        margin-right: 18px;
+        backdrop-filter: blur(5px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
 
-        while ($row = db_fetch_array($stageList)) { ?>
-									<option value="<?php echo $row["stage_name"]; ?>" <?php echo $row[
-    "stage_name"
-] == $current_stage
-    ? "selected"
-    : ""; ?>><?php echo $row["stage_name"]; ?></option>
-								<?php }
-        ?>
-							</select>
-			</div>
-			
-				</div>
+    .header-content .modal-title {
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin: 0;
+        line-height: 1.2;
+    }
 
+    .header-content .modal-subtitle {
+        font-size: 0.75rem;
+        margin: 4px 0 0;
+        opacity: 0.7;
+        font-weight: 400;
+    }
 
-					<div id="add_comment"<?php if (!getSingleresult("select count(id) from sub_stage where stage_name='" .
-                 $current_stage ."'")) { ?> style="display:none"<?php } ?>>
-					<div class="col-md-12 p-0">
-            <div class="form-group">
-              <label for="example-text-input">Sub Stage<span class="text-danger">*</span></label>
-						<select id="add_comment_dd" onchange="payment_option(this.value,<?php echo $id; ?>)" name="add_comm" class="form-control" required="" />
-								<?php
-        $sstage_sql = db_query(
-            "select * from sub_stage where stage_name='" . $current_stage . "'"
-        );
+    /* Close Button */
+    .custom-modal-close {
+        position: absolute;
+        right: 15px;
+        top: 15px;
+        z-index: 10;
+        width: 32px;
+        height: 32px;
+        background: rgba(255, 255, 255, 0.1) !important;
+        color: white !important;
+        border-radius: 50%;
+        opacity: 0.8 !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        border: none;
+        outline: none !important;
+    }
 
-        while ($sstage_data = db_fetch_array($sstage_sql)) { ?>
-									<option <?php echo $add_comm == $sstage_data["name"]
-             ? "selected"
-             : ""; ?> value="<?php echo $sstage_data[
-     "name"
- ]; ?>"><?php echo $sstage_data["name"]; ?></option>
-								<?php }
-        ?>
-							</select>
-			</div>
-			
+    .custom-modal-close:hover {
+        background: rgba(255, 255, 255, 0.2) !important;
+        opacity: 1 !important;
+        transform: rotate(90deg);
+    }
 
-			</div>
-        <?php if (
-            $add_comm == "Demo Arranged" ||
-            $add_comm == "Demo Rescheduled" ||
-            $add_comm == "Demo Completed"
-        ) { ?>
-			<div id="demo_datetime_div">
-				<div class="col-md-12 p-0">
-					<div class="form-group">
-						<label for="demo_datetime">Demo Schedule Date & Time<span class="text-danger">*</span></label>
-						<input type="datetime-local" name="demo_datetime" id="demo_datetime" class="form-control" value="<?= $demo_schedule ?>" required>
-					</div>
-				</div>
-			</div>
-		<?php } elseif ($current_stage == "Demo") { ?>
-			<div id="demo_datetime_div"  style="display:none;">
-				<div class="col-md-12 p-0">
-					<div class="form-group">
-						<label for="demo_datetime">Demo Schedule Date & Time<span class="text-danger">*</span></label>
-						<input type="datetime-local" name="demo_datetime" id="demo_datetime" class="form-control" value="<?= $demo_schedule ?>" required>
-					</div>
-				</div>
-			</div>
-	<?php } ?>
+    /* Org Info Card */
+    .org-info-card {
+        background: #F8FAFC;
+        border-radius: 16px;
+        padding: 12px 16px;
+        border: 1px solid #E2E8F0;
+    }
 
- </div>
+    .info-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #64748B;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 4px;
+    }
 
- <?php if(isset($_POST['isOpportunity']) && $_POST['isOpportunity'] ){ ?>
- 	<div class="form-group" id="academic_year_div">
-					<label>Academic Year <span class="text-danger">*</span></label>
-					<select name="academic_year" id="academic_year" class="form-control">
-						<option value="">--- Select Academic Year ---</option>
-						<?php foreach ($academicYears as $year) { ?>
-							<option value="<?= $year ?>" <?= ($year == $academic_year) ? 'selected' : '' ?>><?= $year ?></option>
-						<?php } ?>
-					</select>
-			</div>
-<?php } ?>
+    .info-value {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #1E293B;
+    }
 
- 			<!-- <div id="program_start_dateDiv"  style="display:none;">
-				<div class="col-md-12 p-0">
-					<div class="form-group">
-						<label for="program_start_date">Program Start date for Current Opportunity<span class="text-danger">*</span></label>
-						<input type="date" name="program_start_date" id="program_start_date" class="form-control">
-					</div>
-				</div>
-			</div> -->
- <div id="payment_status_div"                              <?php if (
-     !getSingleresult("select partial_payment from orders where id=" . $id) ||
-     $add_comm != "Partial/Credit"
- ) { ?> style="display:none"<?php } ?>>
-					<div class="col-md-12 p-0">
-            <div class="form-group">
-              <label for="example-text-input">Payment Status<span class="text-danger">*</span></label>
-						<select id="payment_status" name="payment_status" class="form-control" required="" />
-									<option <?php echo $payment_status == "50% Advance"
-             ? "selected"
-             : ""; ?> value="50% Advance">50% Advance</option>
-									<option <?php echo $payment_status == "30 Days Credit"
-             ? "selected"
-             : ""; ?> value="30 Days Credit">30 Days Credit</option>
-									<option <?php echo $payment_status == "60 Days Credit"
-             ? "selected"
-             : ""; ?> value="60 Days Credit">60 Days Credit</option>
-									<option <?php echo $payment_status == "90 Days Credit"
-             ? "selected"
-             : ""; ?> value="90 Days Credit">90 Days Credit</option>
-							</select>
-			</div>
-			</div>
- </div>
+    /* Form Styling */
+    .selection-label {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-weight: 600;
+        color: #475569;
+        margin-bottom: 10px;
+        font-size: 0.95rem;
+    }
 
+    .badge-soft-primary {
+        background: #E0E7FF;
+        color: #4338CA;
+        font-size: 0.7rem;
+        padding: 4px 8px;
+        border-radius: 6px;
+    }
 
-				<input type="hidden" name="pid" value="<?php echo $_POST["pid"]; ?>" />
+    .select-wrapper {
+        position: relative;
+    }
 
-				<div class="mt-3 text-center">
-					<button type="button" id="save_button" class="btn btn-primary" onclick="get_change_data('<?php echo $_POST[
-         "pid"
-     ]; ?>','<?php echo $_POST["ids"]; ?>')">Save</button>
-					<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+    .custom-select-premium {
+        height: 44px !important;
+        border-radius: 12px !important;
+        border: 2px solid #E2E8F0 !important;
+        font-weight: 500 !important;
+        color: #1E293B !important;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        padding: 0 16px !important;
+        cursor: pointer;
+        background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748B' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 16px center !important;
+        background-size: 18px !important;
+        appearance: none !important;
+    }
 
-				</div>
-			</form>
-		</div>
+    .custom-select-premium:focus {
+        border-color: #1B274D !important;
+        box-shadow: 0 0 0 4px rgba(27, 39, 77, 0.1) !important;
+        outline: none;
+    }
 
+    /* Footer & Buttons */
+    .modal-footer-premium {
+        background: #F8FAFC;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid #EDF2F7;
+        padding: 12px 20px !important;
+    }
 
+    .btn-cancel {
+        color: #64748B;
+        font-weight: 600;
+        padding: 10px 20px;
+        transition: color 0.2s;
+        border: none;
+        background: transparent;
+    }
 
-<?php if (
-    $_SESSION["user_type"] == "USR" ||
-    $_SESSION["user_type"] == "PUSR"
-) { ?>
+    .btn-cancel:hover {
+        color: #1E293B;
+        text-decoration: none;
+    }
 
-	<script>
-		function select_stage(a, id) {
-			
-			var page_access = '<?php echo $_POST["page_access"]
-       ? $_POST["page_access"]
-       : ""; ?>';
-			var is_opportunity = '<?php echo $is_opportunity; ?>';
-			// if(a == 'Billing' && is_opportunity ==1){
-			// 	var programStartDate = '<?php echo $programStartDate; ?>';
-			// 	var program_initiation_date = '<?php echo $program_initiation_date; ?>';
-			// 	if(program_initiation_date=='' || program_initiation_date==null){
-			// 		if(programStartDate == '' || programStartDate ==  null)
-			// 		{
-			// 			document.getElementById("program_start_dateDiv").style.display = "block";                
-			// 		}
-			// 	}else if((program_initiation_date != '' || program_initiation_date !=  null) && (programStartDate == '' || programStartDate ==  null)){
-			// 		saveProgramDate(program_initiation_date,id);
-			// 	} else{
-			// 		document.getElementById("program_start_dateDiv").style.display = "none";
-			// 	}
-			// }
-				$("#save_button").prop('disabled', false);
-				$("#op").hide();
-				$("#pay_tab").hide();
-				$('#add_Pcomment').hide();
-				$('#payment_status_div').hide();
+    .btn-update {
+        background: #F05A28;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 8px 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 12px rgba(240, 90, 40, 0.25);
+    }
 
-				// Show / Hide Academic Year
-				if (a === 'PO/CIF Issued') {
-					$('#academic_year_div').show();
-					$('#academic_year').attr('required', true);
-				} else {
-					$('#academic_year_div').hide();
-					$('#academic_year').val('');
-					$('#academic_year').removeAttr('required');
-				}
+    .btn-update:hover:not(:disabled) {
+        background: #E04E1D;
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(240, 90, 40, 0.35);
+        color: white;
+    }
 
+    .btn-update:active:not(:disabled) {
+        transform: translateY(0);
+    }
 
-				if(a == 'PO/Pymt/CIF'){
-					$('#trust_div').show();
-					$('#trust_name').attr("require",true);
-				}else{
-					$('#trust_div').hide();
-					$('#trust_name').attr("require",false);
-				}
-				if (a) {
-					$.ajax({
-						type: 'POST',
-						url: 'get_sub_stage.php',
-						data: {
-							stage: a,
-							id: id,
-							_ajax:1
-						},
-						success: function(html) {
-							//alert(html);
-							if (html != 'html') {
-								$('#hidden_parallel_stage option:selected').remove();
-                                $('#add_Pcomment_dd option:selected').remove();
-								$('#add_comment').html(html);
-								$('#add_comment').show();
-							} else {
-								$('#add_comment').hide();
-								$('#hidden_parallel_stage option:selected').remove();
-                                $('#add_Pcomment_dd option:selected').remove();
-							}
-						},
-						error: function () {
-						   Swal.fire("Error", "There was an error: " + data?.message, "error");
-						}
-					});
-				}
-		}
-	</script>
-<?php } else { ?>
-	<script>
-		function select_stage(a, id) {
-			console.log("a",a);
-			var is_opportunity = '<?php echo $is_opportunity; ?>';
-			// if(a == 'Billing' && is_opportunity ==1){
-			// 	var programStartDate = '<?php echo $programStartDate; ?>';
-			// 	var program_initiation_date = '<?php echo $program_initiation_date; ?>';
-			// 	if(program_initiation_date=='' || program_initiation_date==null){
-			// 		if(programStartDate == '' || programStartDate ==  null)
-			// 		{
-			// 			document.getElementById("program_start_dateDiv").style.display = "block";                
-			// 		}
-			// 	}else if((program_initiation_date != '' || program_initiation_date !=  null) && (programStartDate == '' || programStartDate ==  null)){
-			// 		saveProgramDate(program_initiation_date,id);
-			// 	}else{
-			// 		document.getElementById("program_start_dateDiv").style.display = "none";
-			// 	}
-			// }
-			$("#op").hide();
-			$("#pay_tab").hide();
-			$('#add_Pcomment').hide();
-			$('#payment_status_div').hide();
+    .btn-update:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
 
-			// Show / Hide Academic Year
-				if (a === 'PO/CIF Issued') {
-					console.log("hi ra");
-					$('#academic_year_div').show();
-					$('#academic_year').attr('required', true);
-				} else {
-					$('#academic_year_div').hide();
-					$('#academic_year').val('');
-					$('#academic_year').removeAttr('required');
-				}
+    /* Animations */
+    .custom-stage-modal .modal-content {
+        animation: modalScaleIn 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
 
+    @keyframes modalScaleIn {
+        from { opacity: 0; transform: scale(0.95) translateY(10px); }
+        to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+</style>
 
-			if(a == 'PO/Pymt/CIF'){
-					$('#trust_div').show();
-					$('#trust_name').attr("required", "true");
-				}else{
-					$('#trust_div').hide();
-					$('#trust_name').attr("required", "false");
-				}
-			if (a) {
-				$.ajax({
-					type: 'POST',
-					url: 'get_sub_stage.php',
-					data: {
-						stage: a,
-						id: id
-					},
-					success: function(html) {
-						//alert(html);
-						if (html != 'html') {
-							$('#hidden_parallel_stage option:selected').remove();
-                            $('#add_Pcomment_dd option:selected').remove();
-							$('#add_comment').html(html);
-							$('#add_comment').show();
-						} else {
-							$('#hidden_parallel_stage option:selected').remove();
-                            $('#add_Pcomment_dd option:selected').remove();
-							$('#add_comment').hide();
-						}
-					}
-				});
-			}
-		}
-
-	</script>
-<?php } ?>
 <script>
-
-
-	function payment_option(val,id) {
-		if(val == 'Demo Arranged' || val == 'Demo Rescheduled' || val == 'Demo Completed')
-        {
-                document.getElementById("demo_datetime_div").style.display = "block";                
-        }else{
-                document.getElementById("demo_datetime_div").style.display = "none";
+$(document).ready(function() {
+    // Unbind previous clicks to prevent duplication
+    $('#saveStageBtnModal').off('click').on('click', function() {
+        var stageId = $('#stageSelectModal').val();
+        var leadId = <?= $leadId ?>;
+        var currentStageId = <?= $currentStageId ?>;
+        
+        if (!stageId) {
+            swal({
+                title: "Wait!",
+                text: "Please select a target stage.",
+                type: "warning",
+                confirmButtonClass: "btn-warning"
+            });
+            return;
         }
-		if(val!='Partial/Credit'){
-			$('#payment_status_div').hide();
-		}
-	}
+        
+        if (parseInt(stageId) === currentStageId) {
+            swal({
+                title: "No Change",
+                text: "This lead is already at the selected stage.",
+                type: "info",
+                confirmButtonClass: "btn-info"
+            });
+            return;
+        }
 
+        var $btn = $(this);
+        var originalHtml = $btn.html();
+        
+        $btn.prop('disabled', true).html('<i class="fa fa-spinner fa-spin mr-2"></i>Processing...');
 
-	function get_change_data(pid, ids) {
-		var stage = $('#dd_stage :selected').text();
-		var stagevalue = $('#dd_stage :selected').val();
-		var substage = $('#add_comment_dd :selected').text();
-		var substagevalue = $('#add_comment_dd :selected').val();
-		var demo_datetime = $('#demo_datetime').val();
-		var is_opportunity = '<?php echo $is_opportunity; ?>';
-		var lead_idd = '<?php echo $is_opportunity; ?>';
-		var academic_year = $('#academic_year').val();
-		
-		if(is_opportunity == 1 && stage == 'Billing')
-		{
-			// var programStartDate = '<?php echo $programStartDate; ?>';
-			// if(programStartDate == '' || programStartDate ==  null)
-			// {
-			// 	var programStartDate = $('#program_start_date').val();
-			// 	if (programStartDate  == '' || programStartDate ==  null) {
-			// 					swal("Please Fill program start date.");
-			// return false;
-			// 	}
-			// 	saveProgramDate(programStartDate,pid);
-			// }
-
-		}else if(substagevalue == 'Demo Arranged' || substagevalue == 'Demo Rescheduled' || substagevalue == 'Demo Completed'){
-			if(demo_datetime == ''){
-				swal("Please select Date Time.");
-				return false;				
-			}
-		}
-		if(stagevalue == ''){
-			swal("Please select stage first.");
-			return false;
-		}
-		if(substagevalue == ''){
-			swal('Please select sub stage first');
-			return false;
-		}
-
-		var payment_status = $('#payment_status :selected').val();
-		if(substagevalue=='Partial/Credit'){
-
-			if(payment_status == ''){
-				swal("Please select payment status.");
-				return false;
-			}
-		}
-		// Get the files
-		// if(stagevalue == 'PO/CIF Issued' && substagevalue == 'Approved PO Received'){
-		// 	var files = $('#attachments')[0].files;
-		// 	var attachments = [];
-		// 	for (var i = 0; i < files.length; i++) {
-		// 		attachments.push(files[i]);
-		// 	}
-		// }else{
-			var attachments = [];
-		// }
-		// alert('hii')
-
-		if (stagevalue === 'PO/CIF Issued' && academic_year === '') {
-			swal("Please select Academic Year.");
-			return false;
-		}
-
-		chage_stage(stage, pid, ids, substage, payment_status, attachments,demo_datetime, academic_year);
-
-	}
-
-	$(function() {
-		var page_access = '<?php echo $_POST["page_access"]
-      ? $_POST["page_access"]
-      : ""; ?>';
-                    var stage = $('#dd_stage').val();
-                    console.log("stage value on load:", stage);
-
-                    // Show / Hide Academic Year on page load
-                    if (stage === 'PO/CIF Issued') {
-                        $('#academic_year_div').show();
-                        $('#academic_year').attr('required', true);
-                    } else {
-                        $('#academic_year_div').hide();
-                        $('#academic_year').val('');
-                        $('#academic_year').removeAttr('required');
-                    }
-
-                    var subStage = $('#add_comment_dd').val();
-                    //alert(subStage);
-                        var user_type = '<?php echo $_SESSION["user_type"]; ?>';
-                        if(stage == 'EU PO Issued' && subStage=='Payment in Installments' && user_type=='MNGR'&& page_access == 'true')
-                        {
-                          $("#add_comment_dd").css("pointer-events","none");
-                          $("#pay_tab").css("pointer-events","none");
+        $.ajax({
+            url: 'ajax_update.php',
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                action: 'update_stage',
+                lead_id: leadId,
+                stage_id: stageId
+            },
+            success: function(response) {
+                if (response.status === 'success') {
+                    swal({
+                        title: "Updated Successfully!",
+                        text: response.message,
+                        type: "success",
+                        confirmButtonClass: "btn-success"
+                    }, function() {
+                        // Close all potential modal IDs
+                        $('#stage_modal, #myModal1, #stageUpdateModal').modal('hide');
+                        
+                        // Smart reload: refresh DataTable if it exists
+                        if ($.fn.DataTable.isDataTable('#leads')) {
+                            $('#leads').DataTable().ajax.reload(null, false);
+                        } else {
+                            window.location.reload();
                         }
-                });
-
-  $(function() {
-  $('.datepicker').datepicker({
-      format: 'yyyy-mm-dd',
-      forceParse: false,
-      autoclose: !0
-
-
-  });
-
+                    });
+                } else {
+                    swal("Update Failed", response.message || "An error occurred", "error");
+                    $btn.prop('disabled', false).html(originalHtml);
+                }
+            },
+            error: function() {
+                swal("Server Error", "Could not connect to update service. Please try again.", "error");
+                $btn.prop('disabled', false).html(originalHtml);
+            }
+        });
+    });
 });
-
-function saveProgramDate(a,id) {
-	$.ajax({
-		type: 'POST',
-		url: 'general_changes.php',
-		data: {
-			programStartDate: a,
-			pid: id
-		},
-		success: function(res) {
-		}
-	});
-}
 </script>

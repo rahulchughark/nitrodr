@@ -10,12 +10,17 @@ partner_page(); ?>
     }
 
     .approval-badge {
-        display: inline-block;
-        padding: 4px 10px;
-        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 5px 12px;
+        border-radius: 20px;
         font-size: 12px;
         font-weight: 600;
-        line-height: 1.2;
+        line-height: 1;
+        white-space: nowrap;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.03);
     }
     .approval-badge.pending {
         background: #fff4e6;

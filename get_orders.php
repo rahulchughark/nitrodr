@@ -4,41 +4,10 @@
 $joinC = '';
 $vir_cond = '';
 $dat = '';
-if ($_SESSION['sales_manager'] == 1) {
-	$vir_cond = " and o.team_id in (" . $_SESSION['access'] . ") ";
-}
-if ($_SESSION['sales_manager'] == 1) {
-	$region_access=getSingleresult("select region_access from users where id='".$_SESSION['user_id']."'");
-	if($region_access) { $regions=explode(',',$region_access);
-	$search_region=array();
-	foreach($regions as $region)
-	{
-		$search_region[]="'".$region."'";
-	}
-	// $vir_cond .= " and region in (" . implode(",",$search_region) . ") ";
-}
-}
-// print_r($_SESSION);die;
-if($_SESSION['role'] == 'PARTNER'){
-	$vir_cond = " and (o.team_id = ".$_SESSION['team_id']." OR o.allign_team_id=".$_SESSION['team_id'].")";
-}else if($_SESSION['role'] == 'DA'){
-	$vir_cond = " and o.stage = 'Demo'";
-}else if($_SESSION['user_type'] == 'TEAM LEADER'){
-	$callesIds = getSingleResult("SELECT caller from users where id=".$_SESSION['user_id']);
-	$callesIdsA = explode(",", $callesIds);
-	foreach ($callesIdsA as $value) {
-	
-	$calleruidQ = getSingleResult("select user_id from callers where id=".$value);
-	$caller_userId[]=$calleruidQ;
-	}
-	$callesIdsForQ = implode(",", $caller_userId);
-	$vir_cond = " and o.created_by in (".$callesIdsForQ.")";
-}else if($_SESSION['user_type'] == 'CLR'){
-	// $vir_cond = " AND ((COALESCE(o.align_to, '') = '' AND o.created_by = '".$_SESSION['user_id']."') OR (o.align_to IS NOT NULL AND o.align_to != '' AND o.align_to = '".$_SESSION['user_id']."'))";
-	$vir_cond = " AND ((o.created_by = '".$_SESSION['user_id']."') OR (o.align_to = '".$_SESSION['user_id']."'))";
-}else if($_SESSION['user_type'] != 'ADMIN' && $_SESSION['user_type'] != 'SUPERADMIN' && $_SESSION['role'] == 'ISS' && $_SESSION['user_type'] != 'CLR' && $_SESSION['user_type'] != 'RM'){
-	$vir_cond = " AND ((o.created_by = '".$_SESSION['user_id']."') OR (o.align_to = '".$_SESSION['user_id']."'))";
-	// $vir_cond = " and o.created_by = ".$_SESSION['user_id'];
+if ($_SESSION['user_type'] == 'ADMIN' || $_SESSION['user_type'] == 'SUPERADMIN') {
+	$vir_cond = "";
+} else {
+	$vir_cond = " AND o.created_by = '" . $_SESSION['user_id'] . "'";
 }
 
 $queryy = access_role_permission();
@@ -55,52 +24,7 @@ if (isset($requestData['order'][0]['dir'])) {
 	}
 }
 
-if (
-	isset($requestData['mngr_team_scope']) &&
-	(int)$requestData['mngr_team_scope'] === 1 &&
-	($_SESSION['user_type'] ?? '') === 'MNGR'
-) {
-	$loggedInUserId = (int)($_SESSION['user_id'] ?? 0);
-	$mngrTeamId = 0;
-	if ($loggedInUserId > 0) {
-		$mngrTeamId = (int)getSingleresult("SELECT team_id FROM users WHERE id=" . $loggedInUserId . " LIMIT 1");
-	}
 
-	if ($mngrTeamId > 0) {
-		$teamUsersQ = db_query("SELECT id FROM users WHERE team_id=" . $mngrTeamId);
-		$teamUserIds = [];
-		while ($teamUser = db_fetch_array($teamUsersQ)) {
-			$teamUserIds[] = (int)$teamUser['id'];
-		}
-
-		if (!empty($teamUserIds)) {
-			$vir_cond .= " AND ((o.created_by IN (" . implode(',', $teamUserIds) . ")) OR (o.created_by = " . $loggedInUserId . ") OR (o.align_to = " . $loggedInUserId . "))";
-		} else {
-			$vir_cond .= " AND 1=0";
-		}
-	} else {
-		$vir_cond .= " AND 1=0";
-	}
-}
-
-if (($_SESSION['user_type'] ?? '') === 'USR') {
-	$usrTeamId = (int)($_SESSION['team_id'] ?? 0);
-	if ($usrTeamId > 0) {
-		$usrTeamUsersQ = db_query("SELECT id FROM users WHERE team_id=" . $usrTeamId);
-		$usrTeamUserIds = [];
-		while ($usrTeamUsersQ && ($usrTeamUser = db_fetch_array($usrTeamUsersQ))) {
-			$usrTeamUserIds[] = (int)$usrTeamUser['id'];
-		}
-
-		if (!empty($usrTeamUserIds)) {
-			$vir_cond .= " AND ((o.created_by IN (" . implode(',', $usrTeamUserIds) . ")) OR (o.align_to IN (" . implode(',', $usrTeamUserIds) . ")) )";
-		} else {
-			$vir_cond .= " AND 1=0";
-		}
-	} else {
-		$vir_cond .= " AND 1=0";
-	}
-}
 
 $stageFtr = json_decode($_REQUEST['stage']);
 $lead_statusFtr =  json_decode($_REQUEST['lead_status']);
@@ -325,7 +249,8 @@ if (is_array($approvalStatusFtr) && !empty($approvalStatusFtr))
 {
 	$approvalValues = array();
 	foreach ($approvalStatusFtr as $approvalStatus) {
-		if ($approvalStatus === '0' || $approvalStatus === 0 || $approvalStatus === '1' || $approvalStatus === 1) {
+		$approvalStatus = (string)$approvalStatus;
+		if (in_array($approvalStatus, ['0', '1', '2', '3'])) {
 			$approvalValues[] = (int)$approvalStatus;
 		}
 	}
@@ -351,6 +276,12 @@ $alignToFtr = json_decode($_REQUEST['align_to']);
 if(is_array($alignToFtr) && !empty($alignToFtr))
 {
 	$dat.= " and o.align_to in ('".implode("','",$alignToFtr)."')";
+}
+
+if (isset($requestData['renewal_type']) && $requestData['renewal_type'] === 'Renewal') {
+	$dat .= " AND o.renewal_type = 'Renewal'";
+} elseif (isset($requestData['renewal_type']) && $requestData['renewal_type'] === 'Expansion') {
+	$dat .= " AND o.renewal_type = 'Expansion'";
 }
  
 $sql = "SELECT o.* 
@@ -455,9 +386,27 @@ while($data = db_fetch_array($query)) {
     $nestedData['licenses'] = $data['number_of_licenses'];
 	$subscriptionTermRaw = strtolower(trim((string)$data['subscription_term']));
 	$nestedData['subscription_term'] = ($data['subscription_term'] == 1 || in_array($subscriptionTermRaw, array('1 year', '1 years'))) ? "1 Year" : (($data['subscription_term'] == 3 || in_array($subscriptionTermRaw, array('3 year', '3 years'))) ? "3 Year" : "");
-	$nestedData['stage_id'] = $data['stage_name'] ? $data['stage_name'] : '';
+	$nestedData['license_type'] = $data['license_type'] ? $data['license_type'] : '-';
+	$nestedData['renewal_type'] = $data['renewal_type'] ? $data['renewal_type'] : '-';
+	$stageName = $data['stage_name'] ? $data['stage_name'] : '';
+	$leadId = $data['id'];
+	$btnId = "'but" . $leadId . "'";
+	$nestedData['stage_id'] = $stageName . ' <a href="javascript:void(0)" class="text-primary ml-2 stage-edit-link" title="Change Stage" id="but' . $leadId . '" onclick="stage_change(' . $btnId . ',' . $leadId . ')"><i class="fa fa-edit"></i></a>';
 	$nestedData['proof_engagement_id'] = $data['proof_engagement_name'] ? $data['proof_engagement_name'] : '';
-	$nestedData['created_by_name'] = $data['created_by_name'] ? $data['created_by_name'] : '-';
+	$commentVal = '';
+	if (isset($_REQUEST['approval_badge']) && (string)$_REQUEST['approval_badge'] === '1') {
+		if (!empty($data['add_comment'])) {
+			$commentVal = $data['add_comment'];
+		} elseif (!empty($data['comment'])) {
+			$commentVal = $data['comment'];
+		}
+	}
+
+	$creatorName = $data['created_by_name'] ? $data['created_by_name'] : '-';
+	if ($commentVal !== '') {
+		$creatorName .= '<br><span class="text-muted" style="font-size:11px; display:inline-block; white-space: normal; max-width: 180px;">' . htmlspecialchars($commentVal, ENT_QUOTES, 'UTF-8') . '</span>';
+	}
+	$nestedData['created_by_name'] = $creatorName;
 	$nestedData['partner_name'] = $data['partner_name'] ? $data['partner_name'] : '-';
 
 	$reasonSelect = '<select class="reason-select form-control form-control-sm" data-id="'.$data['id'].'">';
@@ -571,7 +520,18 @@ while($data = db_fetch_array($query)) {
 			$priceText = ' <span class="approved-price text-success" style="font-weight:600; font-size:0.9rem; margin-left:6px; display:inline-block; vertical-align:middle;">₹' . htmlspecialchars($data['price'], ENT_QUOTES, 'UTF-8') . '</span>';
 		}
 		
-		$nestedData['approval'] = $eyeIconHtml . $select . $priceText;
+		$wrapperClass = 'pending';
+		if ((int)$data['is_approved'] === 1) $wrapperClass = 'approved';
+		if ((int)$data['is_approved'] === 2) $wrapperClass = 'rejected';
+		if ((int)$data['is_approved'] === 3) $wrapperClass = 'onboard';
+		
+		$eyeIconWrap = '';
+		if ($rowApprovalReasonText !== '') {
+			$statusLabel = ($rowApprovalState === 2) ? 'Rejected' : 'Onhold';
+			$eyeIconWrap = '<a href="javascript:void(0);" class="view-approval-reason" data-reason="'.htmlspecialchars($rowApprovalReasonText, ENT_QUOTES, 'UTF-8').'" data-status-type="'.$statusLabel.'" title="View Reason"><i class="fa fa-eye"></i></a>';
+		}
+
+		$nestedData['approval'] = '<span class="approval-wrapper ' . $wrapperClass . '"><i class="approval-indicator"></i>' . $eyeIconWrap . $select . '</span>' . $priceText;
 	} else {
 		$approvalState = (int)$data['is_approved'];
 		$approvalMap = [
@@ -614,7 +574,20 @@ while($data = db_fetch_array($query)) {
 	// 	';
 	// }
 
-	$nestedData['action'] = '<a href="view_leads.php?eid='.$data['id'].'" class="btn btn-sm btn-info mr-1" title="View Lead"><i class="fa fa-eye"></i></a><a href="add_order.php?eid='.$data['id'].'" class="btn btn-sm btn-primary" title="Edit Lead"><i class="fa fa-edit"></i></a>';
+	// Block editing for approved leads
+	$isLeadApproved = ((int)$data['is_approved'] === 1);
+	$editLink = 'add_order.php?eid='.$data['id'];
+	$editOnClick = '';
+	$editClass = 'btn btn-sm btn-primary';
+	
+	if ($isLeadApproved) {
+		$editLink = 'javascript:void(0)';
+		$editOnClick = 'onclick="swal(\'Edit Not Allowed\', \'Editing is blocked because this lead has already been approved.\', \'warning\')"';
+		$editClass = 'btn btn-sm btn-secondary'; // Change color to indicate disabled state
+	}
+
+	$nestedData['action'] = '<a href="view_leads.php?eid='.$data['id'].'" class="btn btn-sm btn-info mr-1" title="View Lead"><i class="fa fa-eye"></i></a>' .
+							'<a href="'.$editLink.'" class="'.$editClass.'" title="Edit Lead" '.$editOnClick.'><i class="fa fa-edit"></i></a>';
 
 
     $nestedData['created_at'] = 

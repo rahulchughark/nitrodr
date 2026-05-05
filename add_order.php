@@ -164,6 +164,8 @@
     $leadId          = isset($_GET['lead']) ? intval($_GET['lead']) : 0;
     $typeId          = isset($_GET['type']) ? intval($_GET['type']) : 0;
     $productInterest = isset($_GET['product_of_interest']) ? trim((string) $_GET['product_of_interest']) : '';
+    $licenseTypeUrl  = isset($_GET['license_type']) ? trim((string) $_GET['license_type']) : '';
+    $renewalTypeUrl  = isset($_GET['renewal_type']) ? trim((string) $_GET['renewal_type']) : '';
 
     $productName    = '';
     $subProductName = '';
@@ -262,7 +264,7 @@
         $updatedCreatedByCategory = ($sessionRole === 'Partner') ? 'Partner' : 'Internal';
 
         $updatedAlignTo = $_POST['align_to'] ?? '';
-        if ($loggedInUserType === 'USR') {
+        if ($loggedInUserType === 'USR' && $loggedInTeamId !== 127) {
             $updatedAlignTo = (string) (int) ($_SESSION['user_id'] ?? 0);
         }
         $leadComment              = mysqli_real_escape_string($GLOBALS['dbcon'], trim((string) ($_POST['comment'] ?? '')));
@@ -372,7 +374,7 @@
 
         // INSERT query for add mode
         $insertAlignTo = $_POST['align_to'] ?? '';
-        if ($loggedInUserType === 'USR') {
+        if ($loggedInUserType === 'USR' && $loggedInTeamId !== 127) {
             $insertAlignTo = (string) (int) ($_SESSION['user_id'] ?? 0);
         }
 
@@ -716,9 +718,12 @@ label {
                                                 <div class="col-sm-7">
                                                     <select disabled name="license_type" id="license_type" class="form-control">
                                                         <option value="">---Select---</option>
-                                                        <option value="Fresh" <?php echo (($row['license_type'] ?? '') === 'Fresh') ? 'selected' : ''; ?>>Fresh</option>
-                                                        <option value="Renewal" <?php echo (($row['license_type'] ?? '') === 'Renewal') ? 'selected' : ''; ?>>Renewal</option>
-                                                        <option value="Expansion" <?php echo (($row['license_type'] ?? '') === 'Expansion') ? 'selected' : ''; ?>>Expansion</option>
+                                                        <?php
+                                                            $selectedLicenseType = $isEditMode ? ($row['license_type'] ?? '') : $licenseTypeUrl;
+                                                        ?>
+                                                        <option value="Fresh" <?php echo ($selectedLicenseType === 'Fresh') ? 'selected' : ''; ?>>Fresh</option>
+                                                        <option value="Renewal" <?php echo ($selectedLicenseType === 'Renewal') ? 'selected' : ''; ?>>Renewal</option>
+                                                        <option value="Expansion" <?php echo ($selectedLicenseType === 'Expansion') ? 'selected' : ''; ?>>Expansion</option>
                                                     </select>
                                                 </div>
                                             </div>
@@ -831,14 +836,17 @@ label {
                                                     <input type="date" name="expected_closure_date" id="datepicker-close-date" class="form-control" value="<?php echo htmlspecialchars($row['expected_closure_date'] ?? '', ENT_QUOTES, 'UTF-8') ?>" required autocomplete="off">
                                                 </div>
                                             </div>
-                                            <div class="form-group row" id="renewal_type_row" style="<?php echo (($row['license_type'] ?? '') === 'Renewal') ? '' : 'display:none;'; ?>">
+                                            <div class="form-group row" id="renewal_type_row" style="<?php echo (($isEditMode ? ($row['license_type'] ?? '') : $licenseTypeUrl) === 'Renewal') ? '' : 'display:none;'; ?>">
                                                 <label class="col-sm-5 col-form-label">Type of renewal</label>
                                                 <div class="col-sm-7">
                                                     <select disabled name="renewal_type" id="renewal_type" class="form-control">
                                                         <option value="">---Select---</option>
-                                                        <option value="FTR" <?php echo (($row['renewal_type'] ?? '') === 'FTR') ? 'selected' : ''; ?>>FTR</option>
-                                                        <option value="RR" <?php echo (($row['renewal_type'] ?? '') === 'RR') ? 'selected' : ''; ?>>RR</option>
-                                                        <option value="Expansion" <?php echo (($row['renewal_type'] ?? '') === 'Expansion') ? 'selected' : ''; ?>>Expansion</option>
+                                                        <?php
+                                                            $selectedRenewalType = $isEditMode ? ($row['renewal_type'] ?? '') : $renewalTypeUrl;
+                                                        ?>
+                                                        <option value="FTR" <?php echo ($selectedRenewalType === 'FTR') ? 'selected' : ''; ?>>FTR</option>
+                                                        <option value="RR" <?php echo ($selectedRenewalType === 'RR') ? 'selected' : ''; ?>>RR</option>
+                                                        <option value="Expansion" <?php echo ($selectedRenewalType === 'Expansion') ? 'selected' : ''; ?>>Expansion</option>
                                                     </select>
                                                 </div>
                                             </div>
@@ -918,9 +926,49 @@ label {
                                         </div>
                                         <div class="col-md-6">
                                             <?php
-                                                // Always post partner_id from session and keep it hidden per requirement
                                                 $loggedInTeamId = (int) ($_SESSION['team_id'] ?? 0);
-                                                echo "<input type=\"hidden\" name=\"partner_id\" value=\"" . ($loggedInTeamId > 0 ? $loggedInTeamId : '') . "\">";
+                                                if ($loggedInTeamId === 127) {
+                                                    ?>
+                                                    <div class="form-group row">
+                                                        <label class="col-sm-5 col-form-label">Assigned to Partner</label>
+                                                        <div class="col-sm-7">
+                                                            <select name="partner_id" id="assigned_partner_id" class="form-control select2">
+                                                                <option value="">---Select---</option>
+                                                                <?php
+                                                                $partners = db_query("SELECT id, name FROM partners WHERE status='Active' ORDER BY name ASC");
+                                                                while ($p = db_fetch_array($partners)) {
+                                                                    $selectedPartner = ((string)($row['partner_id'] ?? '') === (string)$p['id']) ? 'selected' : '';
+                                                                    echo "<option value='{$p['id']}' {$selectedPartner}>{$p['name']}</option>";
+                                                                }
+                                                                ?>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="form-group row">
+                                                        <label class="col-sm-5 col-form-label">Align To</label>
+                                                        <div class="col-sm-7">
+                                                            <select name="align_to" id="align_to" class="form-control" data-selected-user="<?php echo htmlspecialchars($row['align_to'] ?? '', ENT_QUOTES, 'UTF-8'); ?>">
+                                                                <option value="">---Select---</option>
+                                                                <?php
+                                                                if ($isEditMode && !empty($row['partner_id'])) {
+                                                                    $partnerId = (int)$row['partner_id'];
+                                                                    $alignUsers = db_query("SELECT u.id, u.name FROM users as u JOIN partners as p ON p.id = u.team_id WHERE p.id = $partnerId ORDER BY u.name ASC");
+                                                                    while ($au = db_fetch_array($alignUsers)) {
+                                                                        $selectedAlign = ((string)($row['align_to'] ?? '') === (string)$au['id']) ? 'selected' : '';
+                                                                        echo "<option value='{$au['id']}' {$selectedAlign}>{$au['name']}</option>";
+                                                                    }
+                                                                }
+                                                                ?>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <?php
+                                                } else {
+                                                    // Always post partner_id from session and keep it hidden per requirement
+                                                    echo "<input type=\"hidden\" name=\"partner_id\" value=\"" . ($loggedInTeamId > 0 ? $loggedInTeamId : '') . "\">";
+                                                    // Keep align_to hidden and null per requirement
+                                                    echo "<input type=\"hidden\" name=\"align_to\" value=\"" . htmlspecialchars($row['align_to'] ?? '', ENT_QUOTES, 'UTF-8') . "\">";
+                                                }
                                             ?>
                                             <?php if ($isManagerEditMode) {?>
                                             <div class="form-group row">
@@ -938,10 +986,6 @@ label {
                                                 </div>
                                             </div>
                                             <?php }?>
-                                            <?php
-                                                // Keep align_to hidden and null per requirement
-                                                echo "<input type=\"hidden\" name=\"align_to\" value=\"\">";
-                                            ?>
                                         </div>
                                     </div>
 
@@ -1547,5 +1591,34 @@ $(document).ready(function() {
             $sel.after('<input type="hidden" name="' + name + '" value="' + val + '">');
         }
     });
+    function loadAlignUsers(partnerId, selectedUser) {
+        var $alignSelect = $('#align_to');
+        if (!partnerId) {
+            $alignSelect.html('<option value="">---Select---</option>');
+            return;
+        }
+        $.ajax({
+            type: 'POST',
+            url: 'ajax_update.php',
+            data: {
+                action: 'get_partner_users',
+                partner_id: partnerId,
+                selected_user: selectedUser || ''
+            },
+            success: function(html) {
+                $alignSelect.html(html);
+            },
+            error: function() {
+                $alignSelect.html('<option value="">---Select---</option>');
+            }
+        });
+    }
+
+    $('#assigned_partner_id').on('change', function() {
+        loadAlignUsers($(this).val());
+    });
+    if ($('#assigned_partner_id').length && $('#assigned_partner_id').val()) {
+        loadAlignUsers($('#assigned_partner_id').val(), $('#align_to').data('selected-user') || $('#align_to').val());
+    }
 });
 </script>

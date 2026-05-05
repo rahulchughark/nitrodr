@@ -241,7 +241,6 @@
       });
 
       $('#product').on('change', function() {
-
           var productID = $(this).val();
           $('#productDescription').html('<label class="control-label">Description</label><select class="form-control" disabled><option value="">---Select---</option></select>');
           
@@ -549,34 +548,9 @@
 }
 
 
-      // $(document).ready(function () {     
-      
-      // });
-      // fetchWhatsappNotification();
-      // function fetchWhatsappNotification(){
-      //   $('#whatsapp-notification').load('whatsapp_notification.php');
-      // }
-      
-      // function showNotificationBar(){
-      //       $('.whatspp-dropdown-main').addClass('active');
-      //   }
-
-      // function closeNotificationBar(){
-      //       $('.whatspp-dropdown-main').hide();
-      //   }
 
 
-      function whatsappMessageBoxModal(index){
-        
-        const modal = $('#whatsappModal'+index);
-        modal.addClass('custom-backdrop');
- 
-            modal.modal({
-                backdrop: false,
-                show: false
-            });
-
-      }
+    
 
      
      function updateUserWiseKRA(e, cls, id, key_subject, type, user_id) {

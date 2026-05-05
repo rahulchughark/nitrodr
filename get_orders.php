@@ -391,7 +391,16 @@ while($data = db_fetch_array($query)) {
 	$stageName = $data['stage_name'] ? $data['stage_name'] : '';
 	$leadId = $data['id'];
 	$btnId = "'but" . $leadId . "'";
-	$nestedData['stage_id'] = $stageName . ' <a href="javascript:void(0)" class="text-primary ml-2 stage-edit-link" title="Change Stage" id="but' . $leadId . '" onclick="stage_change(' . $btnId . ',' . $leadId . ')"><i class="fa fa-edit"></i></a>';
+	$isApproved = ((int)$data['is_approved'] === 1);
+	$userType = $_SESSION['user_type'] ?? '';
+	$isAdmin = in_array($userType, ['ADMIN', 'SUPERADMIN', 'OPERATIONS']);
+	$blockEditing = ($isApproved && !$isAdmin);
+	
+	if ($blockEditing) {
+		$nestedData['stage_id'] = $stageName . ' <a href="javascript:void(0)" class="text-muted ml-2" style="opacity: 0.4; cursor: not-allowed;" title="Update Not Allowed" onclick="swal(\'Update Not Allowed\', \'Stage update is blocked because this lead has already been approved.\', \'warning\')"><i class="fa fa-edit"></i></a>';
+	} else {
+		$nestedData['stage_id'] = $stageName . ' <a href="javascript:void(0)" class="text-primary ml-2 stage-edit-link" title="Change Stage" id="but' . $leadId . '" onclick="stage_change(' . $btnId . ',' . $leadId . ')"><i class="fa fa-edit"></i></a>';
+	}
 	$nestedData['proof_engagement_id'] = $data['proof_engagement_name'] ? $data['proof_engagement_name'] : '';
 	$commentVal = '';
 	if (isset($_REQUEST['approval_badge']) && (string)$_REQUEST['approval_badge'] === '1') {
@@ -580,14 +589,15 @@ while($data = db_fetch_array($query)) {
 	$editOnClick = '';
 	$editClass = 'btn btn-sm btn-primary';
 	
-	if ($isLeadApproved) {
+	if ($blockEditing) {
 		$editLink = 'javascript:void(0)';
 		$editOnClick = 'onclick="swal(\'Edit Not Allowed\', \'Editing is blocked because this lead has already been approved.\', \'warning\')"';
-		$editClass = 'btn btn-sm btn-secondary'; // Change color to indicate disabled state
+		$editClass = 'btn btn-sm btn-secondary text-muted'; 
+		$editStyle = 'style="opacity: 0.4; cursor: not-allowed;"';
 	}
 
 	$nestedData['action'] = '<a href="view_leads.php?eid='.$data['id'].'" class="btn btn-sm btn-info mr-1" title="View Lead"><i class="fa fa-eye"></i></a>' .
-							'<a href="'.$editLink.'" class="'.$editClass.'" title="Edit Lead" '.$editOnClick.'><i class="fa fa-edit"></i></a>';
+							'<a href="'.$editLink.'" class="'.$editClass.'" title="Edit Lead" '.$editOnClick.' '.$editStyle.'><i class="fa fa-edit"></i></a>';
 
 
     $nestedData['created_at'] = 

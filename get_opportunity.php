@@ -187,8 +187,10 @@ $columnIndex = $requestData['order'][0]['column']; // Column index
 $columnName = $requestData['columns'][$columnIndex]['data']; // Column name
 $columnSortOrder = $requestData['order'][0]['dir']; // asc or desc
 
-$sql .= " ORDER BY o.id ".$columnSortOrder." 
-          LIMIT ".$requestData['start']." ,".$requestData['length'];
+$sql .= " ORDER BY o.id ".$columnSortOrder;
+if ($requestData['length'] != -1) {
+    $sql .= " LIMIT ".$requestData['start']." ,".$requestData['length'];
+}
 
 $query = db_query($sql);
 

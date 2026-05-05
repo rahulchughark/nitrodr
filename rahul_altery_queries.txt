@@ -51,3 +51,7 @@ ALTER TABLE orders
 MODIFY license_type ENUM('Fresh', 'Renewal', 'Expansion') NULL;
 ALTER TABLE orders 
 MODIFY renewal_type ENUM('FTR', 'RR', 'Expansion') NULL;
+
+
+#05-05-2026:
+INSERT INTO `tbl_module` (`id`, `name`, `url`, `status`, `parentId`, `setOrder`, `partner`, `user_type`, `icon`, `is_function`, `isDeleted`) VALUES (NULL, 'Manage Expansion', 'admin_opportunity_expansions.php', '1', '168', '2', NULL, 'ADMIN,USR,MNGR,CLR', NULL, NULL, NULL), (NULL, 'Manage Renewal', 'admin_opportunity_renewals.php', '1', '168', '3', NULL, 'ADMIN,USR,MNGR,CLR', NULL, NULL, NULL);

@@ -279,14 +279,16 @@ if(is_array($alignToFtr) && !empty($alignToFtr))
 }
 
 if (isset($requestData['renewal_type']) && $requestData['renewal_type'] === 'Renewal') {
-	$dat .= " AND o.renewal_type = 'Renewal'";
+	$dat .= " AND o.license_type = 'Renewal'";
 } elseif (isset($requestData['renewal_type']) && $requestData['renewal_type'] === 'Expansion') {
-	$dat .= " AND o.renewal_type = 'Expansion'";
+	$dat .= " AND o.license_type = 'Expansion'";
 }
+
+$isOpportunityFilter = isset($requestData['is_opportunity']) ? (int)$requestData['is_opportunity'] : 0;
  
 $sql = "SELECT o.* 
 	FROM orders as o
-        WHERE o.is_deleted = 0 AND o.is_opportunity = 0";
+        WHERE o.is_deleted = 0 AND o.is_opportunity = $isOpportunityFilter";
 
 $query = db_query($sql);
 $totalData = mysqli_num_rows($query);
@@ -300,7 +302,7 @@ $sql .= "FROM orders as o
 		 LEFT JOIN users as creator ON creator.id = o.created_by
 		 LEFT JOIN partners as p ON p.id = creator.team_id
 		 $joinC
-		 WHERE o.is_deleted = 0 AND o.is_opportunity = 0";
+		 WHERE o.is_deleted = 0 AND o.is_opportunity = $isOpportunityFilter";
 	 
 
 if (!empty($requestData['search']['value'])) {
@@ -322,8 +324,10 @@ $sql .= " GROUP BY o.id";
 $query = db_query($sql);
 $totalFiltered = mysqli_num_rows($query);
 
-$sql .= " ORDER BY o.id ".$columnSortOrder." 
-          LIMIT ".$requestData['start']." ,".$requestData['length'];
+$sql .= " ORDER BY o.id ".$columnSortOrder;
+if ($requestData['length'] != -1) {
+    $sql .= " LIMIT ".$requestData['start']." ,".$requestData['length'];
+}
 
 $query = db_query($sql);
 

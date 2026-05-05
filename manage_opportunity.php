@@ -257,9 +257,7 @@
                     }
                 },
                 "drawCallback": function() {
-                    if (isMngReadOnly) {
-                        $('#leads a.btn').addClass('list-action-disabled').attr('tabindex', '-1');
-                    }
+                    // Removed automatic disabling of buttons to allow View icon to be clickable
                 },
                 "columnDefs": [
                     { "data": "id", "targets": 0 },

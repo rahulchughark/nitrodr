@@ -398,6 +398,9 @@ $shadowColor = ($isApproved === 2) ? 'rgba(229, 62, 62, 0.08)' : 'rgba(221, 107,
                     <div class="media bredcrum-title">
                         <img class="d-flex mr-3 rounded-circle avatar-xs" src="images/title-icon.png" alt=" ">
                         <div class="media-body">
+                            <a href="javascript:history.back();" class="btn btn-primary float-right d-flex align-items-center" style="box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3); border-radius: 8px; font-weight: 600; padding: 8px 20px; transition: all 0.3s ease;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 15px rgba(0, 123, 255, 0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0, 123, 255, 0.3)';">
+                                <i class="fa fa-arrow-left mr-2"></i> Go Back
+                            </a>
                             <small class="text-muted">Home > View Lead</small>
                             <h4 class="font-size-14 m-0 mt-1">View Lead #<?= (int)$row['id'] ?></h4>
                         </div>

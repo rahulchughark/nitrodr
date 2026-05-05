@@ -238,7 +238,16 @@ while($data = db_fetch_array($query)) {
 		';
 	}
 
-	$nestedData['action'] = '<a href="view_leads.php?eid='.$data['id'].'" class="btn btn-sm btn-info mr-1" title="View Lead"><i class="fa fa-eye"></i></a><a href="add_order.php?eid='.$data['id'].'" class="btn btn-sm btn-primary" title="Edit Lead"><i class="fa fa-edit"></i></a>';
+	$userType = $_SESSION['user_type'] ?? '';
+	$isAdmin = in_array($userType, ['ADMIN', 'SUPERADMIN', 'OPERATIONS']);
+	
+	$actionHtml = '<div class="d-flex align-items-center">';
+	$actionHtml .= '<a href="view_leads.php?eid='.$data['id'].'" class="btn btn-sm btn-info mr-1" title="View Lead"><i class="fa fa-eye"></i></a>';
+	if ($isAdmin) {
+		$actionHtml .= '<a href="add_order.php?eid='.$data['id'].'" class="btn btn-sm btn-primary" title="Edit Lead"><i class="fa fa-edit"></i></a>';
+	}
+	$actionHtml .= '</div>';
+	$nestedData['action'] = $actionHtml;
 	$nestedData['created_by'] = $data['created_by_name'] ? $data['created_by_name'] : 'N/A';
 	$nestedData['created_at'] = $data['created_at'] ? date('d-m-Y H:i:s', strtotime($data['created_at'])) : 'N/A';
 

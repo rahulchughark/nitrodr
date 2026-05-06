@@ -178,6 +178,8 @@
     }
     }
 
+    $isSubscription = (stripos((string)$productName, 'Subscription') !== false);
+
     if ($typeId > 0) {
     $subProductRes = db_query("SELECT product_type FROM tbl_product_pivot WHERE id='" . $typeId . "' LIMIT 1");
     if ($subProductRes && mysqli_num_rows($subProductRes) > 0) {
@@ -691,7 +693,7 @@ label {
                                             <div class="form-group row">
                                                 <label class="col-sm-5 col-form-label">Sub Product<span class="text-danger">*</span></label>
                                                 <div class="col-sm-7">
-                                                    <select <?php echo ($isEditMode || !empty($_GET['type'])) ? 'disabled' : ''; ?> name="sub_product" id="sub_product_select" class="form-control" required >
+                                                    <select <?php echo ($isEditMode || !empty($_GET['type']) || $isSubscription) ? 'disabled' : ''; ?> name="sub_product" id="sub_product_select" class="form-control" required >
                                                         <option value="">---Select---</option>
                                                         <?php
                                                             $selectedProductId    = isset($_GET['lead']) ? intval($_GET['lead']) : ($row['product'] ?? '');
@@ -756,7 +758,7 @@ label {
                                              <div class="form-group row">
                                                 <label class="col-sm-5 col-form-label">Product Description</label>
                                                 <div class="col-sm-7">
-                                                    <select <?php echo ($isEditMode || !empty($_GET['description'])) ? 'disabled' : ''; ?> name="description" id="description_select" class="form-control">
+                                                    <select <?php echo ($isEditMode || !empty($_GET['description']) || $isSubscription) ? 'disabled' : ''; ?> name="description" id="description_select" class="form-control">
                                                     <option value="">---Select---</option>
                                                     <?php
                                                         $selectedDescriptionId = isset($_GET['description']) ? intval($_GET['description']) : ($row['description'] ?? '');
@@ -793,6 +795,23 @@ label {
                                                     var prod = document.getElementById('product_select');
                                                     var termContainer = document.getElementById('subscription_term_container');
                                                     var termSelect = document.getElementById('subscription_term');
+                                                    
+                                                    var subProdSelect = document.getElementById('sub_product_select');
+                                                    var descSelect = document.getElementById('description_select');
+                                                    var productName = prod.options[prod.selectedIndex] ? prod.options[prod.selectedIndex].text.toLowerCase() : '';
+                                                    var isSubscription = productName.includes('subscription');
+
+                                                    if(isSubscription) {
+                                                        if(subProdSelect) subProdSelect.disabled = true;
+                                                        if(descSelect) descSelect.disabled = true;
+                                                    } else {
+                                                        // Only enable if they are not forced disabled by URL params or Edit Mode
+                                                        var urlHasType = "<?php echo (!empty($_GET['type']) || $isEditMode) ? '1' : '0'; ?>";
+                                                        var urlHasDesc = "<?php echo (!empty($_GET['description']) || $isEditMode) ? '1' : '0'; ?>";
+                                                        if(subProdSelect && urlHasType !== '1') subProdSelect.disabled = false;
+                                                        if(descSelect && urlHasDesc !== '1') descSelect.disabled = false;
+                                                    }
+
                                                     if(prod && prod.value === '1') {
                                                         termContainer.style.display = 'none';
                                                         termSelect.required = false;

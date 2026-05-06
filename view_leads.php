@@ -43,7 +43,7 @@ if (isset($_POST['submit_call_log'])) {
 
 function text_or_na($value) {
     $value = trim((string)$value);
-    return $value !== '' ? htmlspecialchars($value, ENT_QUOTES, 'UTF-8') : 'N/A';
+    return ($value !== '' && $value !== '0') ? htmlspecialchars($value, ENT_QUOTES, 'UTF-8') : 'N/A';
 }
 
 function master_name_by_id($table, $id, $columns = ['name']) {

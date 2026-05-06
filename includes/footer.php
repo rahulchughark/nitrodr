@@ -242,8 +242,18 @@
 
       $('#product').on('change', function() {
           var productID = $(this).val();
+          var productName = $(this).find('option:selected').text().toLowerCase();
+          
           $('#productDescription').html('<label class="control-label">Description</label><select class="form-control" disabled><option value="">---Select---</option></select>');
           
+          if (productName.includes('subscription')) {
+              $('#productType').hide();
+              $('#productDescription').hide();
+          } else {
+              $('#productType').show();
+              $('#productDescription').show();
+          }
+
           if (productID) {
               $.ajax({
                   type: 'POST',
@@ -287,17 +297,29 @@
             return true;
         }
 
-        if (($('#product_type').val() == "") || ($('#product_type').val() == undefined)) {
+        var productName = $('#product option:selected').text().toLowerCase();
+        var isSubscription = productName.includes('subscription');
+
         var product_type = "";
-        }else{
-          var product_type = $('#product_type').val();
+        if (!isSubscription) {
+            if (($('#product_type').val() == "") || ($('#product_type').val() == undefined)) {
+                product_type = "";
+            } else {
+                product_type = $('#product_type').val();
+            }
         }
+
         var data = $('.product_data').serialize();
         var product = $('#product').val();
         var product_of_interest = $('#product_of_interest').val() || '';
         var interestQuery = '&product_of_interest=' + encodeURIComponent(product_of_interest);
-        var description = $('select[name="description"]').val() || '';
+        
+        var description = "";
+        if (!isSubscription) {
+            description = $('select[name="description"]').val() || '';
+        }
         var descriptionQuery = '&description=' + encodeURIComponent(description);
+        
         var license_type = $('#license_type').val() || '';
         var licenseQuery = '&license_type=' + encodeURIComponent(license_type);
         var renewal_type = $('#renewal_type').val() || '';

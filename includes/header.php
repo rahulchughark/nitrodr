@@ -502,7 +502,23 @@ select.form-control:disabled {
                     function checkProductFormValidity() {
                         var isPartnerRole = <?= $isPartnerRole ? 'true' : 'false' ?>;
                         var productOfInterest = document.getElementById('product_of_interest').value;
-                        var product = document.getElementById('product').value;
+                        var productSelect = document.getElementById('product');
+                        var product = productSelect.value;
+                        var productName = productSelect.options[productSelect.selectedIndex] ? productSelect.options[productSelect.selectedIndex].text : '';
+                        
+                        var isSubscription = productName.toLowerCase().includes('subscription');
+                        
+                        var productTypeDiv = document.getElementById('productType');
+                        var productDescriptionDiv = document.getElementById('productDescription');
+                        
+                        if (isSubscription) {
+                            if (productTypeDiv) productTypeDiv.style.display = 'none';
+                            if (productDescriptionDiv) productDescriptionDiv.style.display = 'none';
+                        } else {
+                            if (productTypeDiv) productTypeDiv.style.display = 'block';
+                            if (productDescriptionDiv) productDescriptionDiv.style.display = 'block';
+                        }
+                        
                         var licenseType = document.getElementById('license_type').value;
                         var renewalTypeSection = document.getElementById('renewal_type_section');
                         var renewalTypeInput = document.getElementById('renewal_type');
@@ -535,9 +551,9 @@ select.form-control:disabled {
 
                         // Check for sub product and description if present
                         var subProduct = document.querySelector('#productType select');
-                        var subProductValid = subProduct ? subProduct.value !== '' : true;
+                        var subProductValid = (subProduct && !isSubscription) ? subProduct.value !== '' : true;
                         var description = document.querySelector('#productDescription select');
-                        var descriptionValid = description ? description.value !== '' : true;
+                        var descriptionValid = (description && !isSubscription) ? description.value !== '' : true;
                         
                         var licenseTypeValid = licenseType !== '';
                         var renewalTypeValid = (licenseType === 'Renewal') ? (renewalType !== '') : true;
